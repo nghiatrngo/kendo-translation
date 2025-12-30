@@ -329,7 +329,7 @@ Step 0: Preparation
 - Read @kendo-translation/development_guideline.md (§ Coding Standards → Supabase Patterns)
 - Read @kendo-translation/reference_docs.md (§3 youtube_note Deep Dive → JWT Authentication, Supabase Query Patterns)
 - Read @youtube_note/server-supabase.js (lines 1-100 for auth patterns)
-- Update docs/ai_docs/AI_LOG_user_understanding_20241230.md
+- Update docs/ai_docs/AI_LOG_user_understanding_20251230.md
 
 Step 1: Supabase Auth
 - Install @supabase/ssr, @supabase/supabase-js
