@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: kendo-translation
+    runtime: node
+    plan: free
+    buildCommand: cd packages/web && npm install && npm run build
+    startCommand: cd packages/web && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: LLM_PROVIDER
+        value: openrouter

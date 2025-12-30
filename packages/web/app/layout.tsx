@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
+import { ThemeProvider, ThemeToggle } from "@/components/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,29 +21,53 @@ export const metadata: Metadata = {
 
 function Header() {
   return (
-    <header className="border-b border-gray-200 bg-white">
+    <header className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
       <nav className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-gray-900">
+          <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white">
             🥋 Kendo Translation
           </Link>
-          <div className="flex gap-6">
-            <Link href="/articles" className="text-gray-600 hover:text-gray-900">
-              Articles
-            </Link>
-            <Link href="/videos" className="text-gray-600 hover:text-gray-900">
-              Videos
-            </Link>
-            <Link href="/terminology" className="text-gray-600 hover:text-gray-900">
-              Terminology
-            </Link>
-            <Link href="/translate" className="text-gray-600 hover:text-gray-900">
-              Translate
-            </Link>
-            <Link href="/login" className="text-blue-600 hover:text-blue-800">
+          <div className="flex items-center gap-4 md:gap-6">
+            <div className="hidden md:flex gap-6">
+              <Link href="/dashboard" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                Dashboard
+              </Link>
+              <Link href="/articles" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                Articles
+              </Link>
+              <Link href="/videos" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                Videos
+              </Link>
+              <Link href="/terminology" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                Terminology
+              </Link>
+              <Link href="/translate" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                Translate
+              </Link>
+            </div>
+            <ThemeToggle />
+            <Link href="/login" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
               Login
             </Link>
           </div>
+        </div>
+        {/* Mobile Navigation */}
+        <div className="md:hidden flex gap-4 mt-3 overflow-x-auto pb-2">
+          <Link href="/dashboard" className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">
+            Dashboard
+          </Link>
+          <Link href="/articles" className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">
+            Articles
+          </Link>
+          <Link href="/videos" className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">
+            Videos
+          </Link>
+          <Link href="/terminology" className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">
+            Terms
+          </Link>
+          <Link href="/translate" className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">
+            Translate
+          </Link>
         </div>
       </nav>
     </header>
@@ -55,12 +80,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100`}
       >
-        <Header />
-        <main>{children}</main>
+        <ThemeProvider defaultTheme="system">
+          <Header />
+          <main>{children}</main>
+        </ThemeProvider>
       </body>
     </html>
   );

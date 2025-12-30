@@ -222,6 +222,68 @@ Step 5: Verify & Summary
 - Suggest: "Ready for Iteration 3: Real Data"
 ```
 
+---
+
+### Testing Query Templates
+
+Based on the Iteration 2 testing process, use these patterns for comprehensive verification:
+
+#### Browser-Based Testing (Primary)
+```
+Test the [ITERATION_NAME] core flows:
+
+1. Navigate to [BASE_URL]
+2. Verify [PAGE_NAME] loads with [EXPECTED_ELEMENTS]
+3. Click on "[LINK_TEXT]" link
+4. Verify [EXPECTED_BEHAVIOR]
+5. Report findings:
+   - Did [component] load correctly?
+   - Were you able to [perform action]?
+   - Any errors observed?
+```
+
+**Example (Iteration 2):**
+```
+Test the Iteration 2 core flows:
+
+1. Navigate to http://localhost:3000
+2. Verify home page loads with navigation header
+3. Click on "Articles" link
+4. Verify articles list shows 3 sample articles from database
+5. Click on "Translate" link
+6. Verify redirect to /login (protected route)
+7. Report: Did articles load from Supabase? Did middleware protection work?
+```
+
+#### Login/Auth Flow Testing
+```
+Test the login and [FEATURE] flow:
+
+1. Navigate to http://localhost:3000/login
+2. Enter email: [TEST_EMAIL] and password: [TEST_PASSWORD]
+3. Click "[SIGN_IN/SIGN_UP]" button
+4. If success, navigate to [PROTECTED_ROUTE]
+5. Verify [AUTHENTICATED_BEHAVIOR]
+6. Report: Did auth work? Did protected route become accessible?
+```
+
+#### Data Verification Testing
+```
+Verify [DATA_TYPE] imported correctly:
+
+1. Navigate to http://localhost:3000/[ROUTE]
+2. Verify [COUNT] items displayed
+3. Search for "[SAMPLE_TERM]"
+4. Verify expected result: [EXPECTED_MATCH]
+5. Report: Did data load? Did search work?
+```
+
+#### Key Testing Insights from Iteration 2
+- **Supabase Email Confirmation**: May need to disable in Supabase Dashboard → Authentication → Providers → "Confirm email" toggle for local testing
+- **Protected Routes**: Test both unauthenticated (should redirect) and authenticated (should allow) access
+- **CRUD Verification**: After saving, navigate away and back to verify data persisted
+- **Browser Recording**: All browser tests are automatically recorded as .webp files for review
+
 ----
 
 + Building a tag based database

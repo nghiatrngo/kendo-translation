@@ -91,3 +91,57 @@ const { data, error } = await supabase
 8. ⏳ Create TranslationEditor component
 9. ⏳ Create middleware.ts for protected routes
 10. ⏳ Verify full flow works
+
+---
+
+## Entry 3: Iteration 3 - Real Data Integration
+**Date**: 2025-12-30  
+**User Request**: Start Iteration 3 - Real Data Integration
+
+### User Intent
+Import real Kendo data and implement video/terminology features:
+1. Import 315 JA-EN article pairs from matched_posts.json
+2. Import 800+ terminology entries from kendo_terms.json
+3. Import onomatopoeia.json entries
+4. Implement YouTube video player with timestamped notes
+5. Implement terminology search page
+
+### Context
+- **Previous**: Iteration 2 completed (auth, CRUD, translation editor)
+- **Data Sources**:
+  - `mARTr/data_crawler/kendo_jidai/matched_posts.json` - 315 pairs
+  - `MAC-RAG/data/terminology/kendo_terms.json` - 800+ terms
+  - `MAC-RAG/data/onomatopoeia.json` - 50+ sound words
+- **Reference**: youtube_note/index.html (YouTube IFrame API)
+
+### Key Data Structures
+```json
+// matched_posts.json entry
+{
+  "en_url": "https://kendojidai.com/...",
+  "jp_url": "https://kendojidai.net/...",
+  "en_title": "...",
+  "jp_title": "...",
+  "match_score": 1.0,
+  "date": "2019-10-21"
+}
+
+// kendo_terms.json entry
+{
+  "source_term": "始め",
+  "target_term": "Begin a match.",
+  "reading": "hajime",
+  "domain": "kendo"
+}
+```
+
+### Action Plan
+1. ✅ Read reference_docs.md (§2.5 Data Assets)
+2. ✅ Locate and analyze data sources
+3. ✅ Create implementation_plan.md
+4. ⏳ Create database migrations (003_iter3_data.sql)
+5. ⏳ Create import scripts
+6. ⏳ Import articles and terminology
+7. ⏳ Implement video player
+8. ⏳ Implement terminology search
+9. ⏳ Verify all data loads correctly

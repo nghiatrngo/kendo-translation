@@ -4,8 +4,11 @@ import { createClient } from '@/lib/supabase/server'
 interface Article {
     id: string
     title: string
+    title_ja?: string
     content_ja?: string
     content_en?: string
+    source_url_en?: string
+    source_url_ja?: string
     translation_status?: string
     created_at: string
 }
@@ -13,9 +16,9 @@ interface Article {
 export default async function ArticlesPage() {
     const supabase = await createClient()
 
-    const { data: articles, error } = await supabase
+    const { data: articles, error, count } = await supabase
         .from('articles')
-        .select('*')
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false })
         .limit(50)
 
@@ -29,11 +32,11 @@ export default async function ArticlesPage() {
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">📚 Articles</h1>
                     <p className="text-gray-600 mt-1">
-                        Browse and read bilingual Kendo articles
+                        Browse and read bilingual Kendo articles from Kendo Jidai
                     </p>
                 </div>
                 <span className="text-sm text-gray-500">
-                    {articles?.length || 0} articles
+                    Showing {articles?.length || 0} of {count || 0} articles
                 </span>
             </div>
 
@@ -59,19 +62,19 @@ export default async function ArticlesPage() {
                                     <h2 className="text-lg font-semibold text-gray-900 hover:text-blue-600">
                                         {article.title}
                                     </h2>
-                                    {article.content_ja && (
-                                        <p className="text-gray-600 mt-1 line-clamp-2 text-sm">
-                                            {article.content_ja.substring(0, 150)}...
+                                    {article.title_ja && (
+                                        <p className="text-gray-600 mt-1 text-sm">
+                                            {article.title_ja}
                                         </p>
                                     )}
                                 </div>
                                 <div className="flex flex-col items-end gap-1 ml-4">
                                     {article.translation_status && (
                                         <span className={`px-2 py-1 text-xs rounded-full ${article.translation_status === 'published'
-                                                ? 'bg-green-100 text-green-800'
-                                                : article.translation_status === 'review'
-                                                    ? 'bg-yellow-100 text-yellow-800'
-                                                    : 'bg-gray-100 text-gray-800'
+                                            ? 'bg-green-100 text-green-800'
+                                            : article.translation_status === 'review'
+                                                ? 'bg-yellow-100 text-yellow-800'
+                                                : 'bg-gray-100 text-gray-800'
                                             }`}>
                                             {article.translation_status}
                                         </span>
@@ -82,8 +85,8 @@ export default async function ArticlesPage() {
                                 </div>
                             </div>
                             <div className="flex gap-3 mt-2 text-xs text-gray-500">
-                                {article.content_ja && <span>🇯🇵 Japanese</span>}
-                                {article.content_en && <span>🇬🇧 English</span>}
+                                {article.source_url_ja && <span>🇯🇵 Japanese</span>}
+                                {article.source_url_en && <span>🇬🇧 English</span>}
                             </div>
                         </Link>
                     ))}

@@ -128,7 +128,7 @@ POST /api/translate/suggest # AI translation
 
 - [Project Description](./docs/project_description.md)
 - [Implementation Plan](./docs/implementation_plan.md)
-- [API Reference](./docs/api_reference.md)
+- [API Reference](./docs/API.md)
 
 ## 🤝 Contributing
 
