@@ -35,18 +35,55 @@ export async function updateSession(request: NextRequest) {
         data: { user },
     } = await supabase.auth.getUser()
 
-    // Protected routes
-    const protectedPaths = ['/translate', '/dashboard']
-    const isProtectedPath = protectedPaths.some(path =>
-        request.nextUrl.pathname.startsWith(path)
-    )
+    const pathname = request.nextUrl.pathname
 
-    if (!user && isProtectedPath) {
-        // Redirect unauthenticated users to login
+    // Routes that require authentication
+    const authRequiredPaths = ['/translate', '/dashboard', '/admin', '/bookmarks']
+    const isAuthRequired = authRequiredPaths.some(path => pathname.startsWith(path))
+
+    // Routes that require specific roles
+    const adminOnlyPaths = ['/admin']
+    const translatorPaths = ['/translate']
+
+    const isAdminOnly = adminOnlyPaths.some(path => pathname.startsWith(path))
+    const isTranslatorRequired = translatorPaths.some(path => pathname.startsWith(path))
+
+    // Redirect unauthenticated users to login
+    if (!user && isAuthRequired) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
-        url.searchParams.set('redirectTo', request.nextUrl.pathname)
+        url.searchParams.set('redirectTo', pathname)
         return NextResponse.redirect(url)
+    }
+
+    // Role-based access control
+    if (user && (isAdminOnly || isTranslatorRequired)) {
+        // Fetch user's profile to get role
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single()
+
+        const userRole = profile?.role || 'reader'
+
+        // Admin-only routes
+        if (isAdminOnly && userRole !== 'admin') {
+            const url = request.nextUrl.clone()
+            url.pathname = '/login'
+            url.searchParams.set('error', 'admin_required')
+            url.searchParams.set('message', 'Admin access required')
+            return NextResponse.redirect(url)
+        }
+
+        // Translator routes (admin or translator allowed)
+        if (isTranslatorRequired && userRole === 'reader') {
+            const url = request.nextUrl.clone()
+            url.pathname = '/login'
+            url.searchParams.set('error', 'translator_required')
+            url.searchParams.set('message', 'Translator access required')
+            return NextResponse.redirect(url)
+        }
     }
 
     // IMPORTANT: You *must* return the supabaseResponse object as it is.

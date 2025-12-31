@@ -12,7 +12,10 @@ function LoginForm() {
     const [mode, setMode] = useState<'login' | 'signup'>('login')
     const router = useRouter()
     const searchParams = useSearchParams()
-    // const supabase = createClient() - Removed
+
+    // Check for role-based error messages from middleware redirect
+    const roleError = searchParams.get('error')
+    const roleMessage = searchParams.get('message')
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -53,6 +56,20 @@ function LoginForm() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
                 🔐 {mode === 'login' ? 'Login' : 'Sign Up'}
             </h1>
+
+            {/* Role-based access error from middleware */}
+            {roleError && roleMessage && (
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-200 rounded-lg p-4 mb-6">
+                    <p className="text-sm font-medium">
+                        ⚠️ {roleMessage}
+                    </p>
+                    <p className="text-xs mt-1 opacity-80">
+                        {roleError === 'admin_required'
+                            ? 'Only administrators can access this page.'
+                            : 'Translator or Admin access is required for translation features.'}
+                    </p>
+                </div>
+            )}
 
             {error && (
                 <div className={`${error.includes('Check your email') ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'} border rounded-lg p-4 mb-6`}>

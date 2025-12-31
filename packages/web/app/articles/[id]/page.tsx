@@ -11,6 +11,22 @@ export default async function ArticleDetailPage({ params }: PageProps) {
     const { id } = await params
     const supabase = await createClient()
 
+    // Get current user and their role
+    const { data: { user } } = await supabase.auth.getUser()
+    let userRole: string = 'reader'
+
+    if (user) {
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single()
+        userRole = profile?.role || 'reader'
+    }
+
+    // Check if user can translate (admin or translator)
+    const canTranslate = user && (userRole === 'admin' || userRole === 'translator')
+
     const { data: article, error } = await supabase
         .from('articles')
         .select('*')
@@ -52,12 +68,14 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                         </span>
                     )}
                     <BookmarkButton contentType="article" contentId={article.id} />
-                    <Link
-                        href={`/translate/${article.id}`}
-                        className="px-4 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                        Translate
-                    </Link>
+                    {canTranslate && (
+                        <Link
+                            href={`/translate/${article.id}`}
+                            className="px-4 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                            Translate
+                        </Link>
+                    )}
                 </div>
             </div>
 
@@ -94,12 +112,18 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                         ) : (
                             <div className="text-gray-400 dark:text-gray-500 italic">
                                 <p>Not yet translated</p>
-                                <Link
-                                    href={`/translate/${article.id}`}
-                                    className="text-blue-600 dark:text-blue-400 hover:underline mt-2 inline-block"
-                                >
-                                    Start translating →
-                                </Link>
+                                {canTranslate ? (
+                                    <Link
+                                        href={`/translate/${article.id}`}
+                                        className="text-blue-600 dark:text-blue-400 hover:underline mt-2 inline-block"
+                                    >
+                                        Start translating →
+                                    </Link>
+                                ) : (
+                                    <p className="text-sm mt-2 text-gray-400 dark:text-gray-500">
+                                        Translation pending
+                                    </p>
+                                )}
                             </div>
                         )}
                     </div>

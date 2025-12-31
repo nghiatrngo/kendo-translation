@@ -206,3 +206,50 @@
 ---
 
 *Last Updated: December 31, 2025*
+
+---
+
+## Phase 5: Role-Specific Views (December 31, 2025)
+
+### Implementation Complete
+
+**Status**: ✅ Implemented
+
+| File | Change |
+|------|--------|
+| components/RoleBasedNavigation.tsx | NEW - Dynamic nav based on role |
+| app/layout.tsx | Updated to use RoleBasedNavigation |
+| lib/supabase/middleware.ts | Added role-based route protection |
+| app/login/page.tsx | Added role error message display |
+| app/articles/[id]/page.tsx | Hide translate button for readers |
+
+### Features
+
+**Navigation by Role:**
+| Role | Dashboard | Articles | Videos | Terminology | Bookmarks | Translate | Admin |
+|------|-----------|----------|--------|-------------|-----------|-----------|-------|
+| Admin | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Translator | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| Reader | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
+
+**Route Protection:**
+- `/admin/*` → Admin only (others redirected with error)
+- `/translate/*` → Admin + Translator only
+- `/dashboard`, `/bookmarks` → Authenticated users
+
+**Component Restrictions:**
+- Article detail: "Translate" button only for Admin/Translator
+- Article detail: "Start translating" link only for Admin/Translator
+- Readers see "Translation pending" instead
+
+### Testing Results
+
+| User | /admin | /translate | /dashboard |
+|------|--------|------------|------------|
+| admin-1@test.com | ✅ Accessible | ✅ Accessible | ✅ Accessible |
+| translator-1@test.com | ✅ Redirect | ✅ Accessible | ✅ Accessible |
+| reader-1@test.com | ✅ Redirect | ✅ Redirect | ✅ Accessible |
+
+---
+
+*Last Updated: December 31, 2025*
