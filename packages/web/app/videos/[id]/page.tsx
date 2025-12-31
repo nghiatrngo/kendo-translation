@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { BookmarkButton } from '@/components/BookmarkButton';
 
 interface VideoNote {
     id: string;
@@ -113,7 +114,10 @@ export default function VideoPlayerPage({
 
     return (
         <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">🎬 Video Player</h1>
+            <div className="flex items-center justify-between mb-6">
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">🎬 Video Player</h1>
+                <BookmarkButton contentType="video" contentId={resolvedParams.id} />
+            </div>
 
             <div className="grid lg:grid-cols-3 gap-6">
                 {/* Video Player */}

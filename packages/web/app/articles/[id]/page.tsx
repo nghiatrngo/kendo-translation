@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
+import { BookmarkButton } from '@/components/BookmarkButton'
 
 interface PageProps {
     params: Promise<{ id: string }>
@@ -50,6 +51,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                             {article.translation_status}
                         </span>
                     )}
+                    <BookmarkButton contentType="article" contentId={article.id} />
                     <Link
                         href={`/translate/${article.id}`}
                         className="px-4 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"

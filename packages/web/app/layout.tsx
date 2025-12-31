@@ -45,6 +45,9 @@ function Header() {
               <Link href="/translate" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
                 Translate
               </Link>
+              <Link href="/bookmarks" className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+                Bookmarks
+              </Link>
             </div>
             <ThemeToggle />
             <AuthHeader />
@@ -66,6 +69,9 @@ function Header() {
           </Link>
           <Link href="/translate" className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">
             Translate
+          </Link>
+          <Link href="/bookmarks" className="text-sm text-gray-600 dark:text-gray-300 whitespace-nowrap">
+            Bookmarks
           </Link>
         </div>
       </nav>

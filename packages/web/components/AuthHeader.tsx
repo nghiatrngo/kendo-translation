@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
 import { User } from '@supabase/supabase-js';
 import Link from 'next/link';
 
@@ -17,84 +16,34 @@ export function AuthHeader() {
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-
     useEffect(() => {
-        // Get initial session
-        const getSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            setUser(session?.user ?? null);
+        checkAuth();
+    }, []);
 
-            if (session?.user) {
-                // Fetch user profile
-                const { data: profileData } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', session.user.id)
-                    .single();
-
-                if (profileData) {
-                    setProfile({
-                        id: session.user.id,
-                        email: session.user.email || '',
-                        role: profileData.role || 'reader',
-                        username: profileData.username
-                    });
-                } else {
-                    setProfile({
-                        id: session.user.id,
-                        email: session.user.email || '',
-                        role: 'reader'
-                    });
-                }
+    const checkAuth = async () => {
+        try {
+            const res = await fetch('/api/auth/me');
+            if (res.ok) {
+                const data = await res.json();
+                setUser(data.user);
+                setProfile(data.profile);
             }
+        } catch (error) {
+            console.error('Error checking auth:', error);
+        } finally {
             setLoading(false);
-        };
-
-        getSession();
-
-        // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (_event, session) => {
-                setUser(session?.user ?? null);
-                if (session?.user) {
-                    const { data: profileData } = await supabase
-                        .from('profiles')
-                        .select('*')
-                        .eq('id', session.user.id)
-                        .single();
-
-                    if (profileData) {
-                        setProfile({
-                            id: session.user.id,
-                            email: session.user.email || '',
-                            role: profileData.role || 'reader',
-                            username: profileData.username
-                        });
-                    } else {
-                        setProfile({
-                            id: session.user.id,
-                            email: session.user.email || '',
-                            role: 'reader'
-                        });
-                    }
-                } else {
-                    setProfile(null);
-                }
-            }
-        );
-
-        return () => subscription.unsubscribe();
-    }, [supabase]);
+        }
+    };
 
     const handleLogout = async () => {
-        await supabase.auth.signOut();
-        setUser(null);
-        setProfile(null);
-        window.location.href = '/';
+        try {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            setUser(null);
+            setProfile(null);
+            window.location.href = '/';
+        } catch (error) {
+            console.error('Error logging out:', error);
+        }
     };
 
     if (loading) {

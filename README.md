@@ -78,25 +78,38 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ```
 kendo-translation/
 ├── packages/
-│   ├── web/                 # Next.js frontend
-│   │   ├── src/app/         # Pages and API routes
-│   │   └── src/components/  # React components
-│   └── translation-engine/  # Python MAC-RAG service
+│   └── web/                 # Next.js frontend
+│       ├── app/             # App Router pages + API routes
+│       ├── components/      # React components
+│       ├── hooks/           # Custom React hooks
+│       ├── lib/             # Utilities (llm, supabase, agents)
+│       └── types/           # TypeScript types
 ├── supabase/
-│   └── migrations/          # Database schema
+│   └── migrations/          # Database schema (5 migrations)
 ├── scripts/                 # Import utilities
 ├── docs/                    # Documentation
 └── README.md
 ```
 
+## 📊 Current Status
+
+| Iteration | Status | Features |
+|-----------|--------|----------|
+| 1-2 Skeleton + Core | ✅ Complete | Routes, auth, article CRUD |
+| 3 Real Data | ✅ Complete | 634 articles, terminology, videos |
+| 4 AI Translation | ✅ Complete | AI suggestions, JA-EN features |
+| 5 Translation Memory | ⏳ Partial | TM search works, embeddings pending |
+| 6 UX | ⏳ Partial | Dashboard, theme; bookmarks pending |
+| 7 Production | ✅ Deployed | Live on Render.com |
+
 ## 📊 Data Sources
 
 | Source | Content |
 |--------|---------|
-| Kendo Jidai | 315 matched EN/JP article pairs |
-| Terminology | 1000+ Kendo terms |
+| Kendo Jidai | 634 total articles |
+| Terminology | 920+ Kendo terms |
 | Translation Memory | 1,264 verified pairs |
-| Onomatopoeia | Japanese sound words database |
+| Onomatopoeia | Japanese sound words |
 
 ## 🚀 Deployment
 

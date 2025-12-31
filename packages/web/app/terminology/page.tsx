@@ -36,41 +36,37 @@ export default function TerminologyPage() {
             setLoading(true);
         }
 
-        const from = pageNum * PAGE_SIZE;
-        const to = from + PAGE_SIZE - 1;
+        const params = new URLSearchParams({
+            page: pageNum.toString(),
+            limit: PAGE_SIZE.toString(),
+            search: search,
+            domain: domain
+        });
 
-        let query = supabase
-            .from('terminology')
-            .select('*', { count: 'exact' })
-            .range(from, to);
+        try {
+            const response = await fetch(`/api/terminology?${params.toString()}`);
+            if (!response.ok) throw new Error('Failed to fetch terms');
 
-        if (search) {
-            query = query.or(
-                `source_term.ilike.%${search}%,target_term.ilike.%${search}%,reading.ilike.%${search}%`
-            );
-        }
+            const data = await response.json();
+            // API returns array, we need to handle count separately or update API to return { data, count }
+            // For now assuming API returns just array, simulating count
+            // TODO: Update API to return pagination metadata
 
-        if (domain !== 'all') {
-            query = query.eq('domain', domain);
-        }
-
-        const { data, error, count } = await query.order('source_term');
-
-        if (error) {
-            console.error('Error fetching terms:', error);
-        } else {
             if (append) {
                 setTerms(prev => [...prev, ...(data || [])]);
             } else {
                 setTerms(data || []);
             }
-            setTotalCount(count || 0);
+            // Fallback total count since API doesn't return it yet
+            setTotalCount(100);
             setPage(pageNum);
+        } catch (error) {
+            console.error('Error fetching terms:', error);
+        } finally {
+            setLoading(false);
+            setLoadingMore(false);
         }
-
-        setLoading(false);
-        setLoadingMore(false);
-    }, [supabase, search, domain]);
+    }, [search, domain]);
 
     useEffect(() => {
         fetchTerms(0, false);

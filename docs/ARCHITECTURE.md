@@ -82,8 +82,12 @@ reading_progress (id, user_id, content_type, content_id, progress_pct)
 
 ## Tech Stack
 
-- **Frontend**: Next.js 16, React 19, Tailwind CSS
+- **Frontend**: Next.js 15, React 19, Tailwind CSS
 - **Backend**: Next.js API Routes
 - **Database**: Supabase PostgreSQL + pgvector
 - **LLM**: OpenRouter (Llama 3.3 70B)
 - **Hosting**: Render.com
+
+---
+
+*Last Updated: December 30, 2024*

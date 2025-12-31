@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
 import { VideoPlayer, extractVideoId } from '@/components/VideoPlayer';
 
 interface VideoNote {
@@ -34,28 +33,29 @@ export default function VideosPage() {
     const [loading, setLoading] = useState(true);
     const [showTranscript, setShowTranscript] = useState(false);
 
-    const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    // Using API routes instead of client-side Supabase due to hanging issues
+    // const supabase = createBrowserClient(...)
 
     // Fetch videos
     useEffect(() => {
         const fetchVideos = async () => {
-            const { data } = await supabase
-                .from('videos')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (data) {
-                setVideos(data);
+            try {
+                const response = await fetch('/api/videos');
+                if (response.ok) {
+                    const data = await response.json();
+                    setVideos(data);
+                }
+            } catch (error) {
+                console.error('Error fetching videos:', error);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
 
         fetchVideos();
-    }, [supabase]);
+    }, []);
 
+    // Fetch notes for selected video
     // Fetch notes for selected video
     useEffect(() => {
         if (!selectedVideo) {
@@ -64,19 +64,19 @@ export default function VideosPage() {
         }
 
         const fetchNotes = async () => {
-            const { data } = await supabase
-                .from('video_notes')
-                .select('*')
-                .eq('video_id', selectedVideo.id)
-                .order('start_time', { ascending: true });
-
-            if (data) {
-                setNotes(data);
+            try {
+                const response = await fetch(`/api/video-notes?video_id=${selectedVideo.id}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    setNotes(data);
+                }
+            } catch (error) {
+                console.error('Error fetching notes:', error);
             }
         };
 
         fetchNotes();
-    }, [selectedVideo, supabase]);
+    }, [selectedVideo]);
 
     const handleTimeUpdate = useCallback((time: number) => {
         setCurrentTime(time);
@@ -99,24 +99,29 @@ export default function VideosPage() {
     const saveNote = async () => {
         if (!selectedVideo || !noteText.trim()) return;
 
-        const { data, error } = await supabase
-            .from('video_notes')
-            .insert({
-                video_id: selectedVideo.id,
-                start_time: startTime,
-                end_time: endTime,
-                note_text: noteText,
-            })
-            .select()
-            .single();
+        try {
+            const response = await fetch('/api/video-notes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    video_id: selectedVideo.id,
+                    start_time: startTime,
+                    end_time: endTime,
+                    note_text: noteText,
+                }),
+            });
 
-        if (error) {
+            if (response.ok) {
+                const data = await response.json();
+                setNotes(prev => [...prev, data].sort((a, b) => a.start_time - b.start_time));
+                setNoteText('');
+                setEndTime(null);
+            } else {
+                alert('Failed to save note');
+            }
+        } catch (error) {
             console.error('Error saving note:', error);
             alert('Failed to save note');
-        } else if (data) {
-            setNotes(prev => [...prev, data].sort((a, b) => a.start_time - b.start_time));
-            setNoteText('');
-            setEndTime(null);
         }
     };
 
@@ -127,35 +132,43 @@ export default function VideosPage() {
             return;
         }
 
-        const { data, error } = await supabase
-            .from('videos')
-            .insert({
-                youtube_id: videoId,
-                title: newVideoTitle,
-            })
-            .select()
-            .single();
+        try {
+            const response = await fetch('/api/videos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    youtube_id: videoId,
+                    title: newVideoTitle,
+                }),
+            });
 
-        if (error) {
+            if (response.ok) {
+                const data = await response.json();
+                setVideos(prev => [data, ...prev]);
+                setNewVideoUrl('');
+                setNewVideoTitle('');
+            } else {
+                alert('Failed to add video');
+            }
+        } catch (error) {
             console.error('Error adding video:', error);
             alert('Failed to add video');
-        } else if (data) {
-            setVideos(prev => [data, ...prev]);
-            setNewVideoUrl('');
-            setNewVideoTitle('');
         }
     };
 
     const deleteNote = async (noteId: string) => {
-        const { error } = await supabase
-            .from('video_notes')
-            .delete()
-            .eq('id', noteId);
+        try {
+            const response = await fetch(`/api/video-notes?id=${noteId}`, {
+                method: 'DELETE',
+            });
 
-        if (error) {
+            if (response.ok) {
+                setNotes(prev => prev.filter(n => n.id !== noteId));
+            } else {
+                console.error('Error deleting note');
+            }
+        } catch (error) {
             console.error('Error deleting note:', error);
-        } else {
-            setNotes(prev => prev.filter(n => n.id !== noteId));
         }
     };
 
@@ -217,12 +230,12 @@ export default function VideosPage() {
                                         key={video.id}
                                         onClick={() => setSelectedVideo(video)}
                                         className={`w-full text-left p-3 rounded-lg transition-colors ${selectedVideo?.id === video.id
-                                                ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
-                                                : 'bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white'
+                                            ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
+                                            : 'bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white'
                                             }`}
                                     >
                                         <div className="font-medium truncate">{video.title}</div>
-                                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1" suppressHydrationWarning>
                                             {new Date(video.created_at).toLocaleDateString()}
                                         </div>
                                     </button>
@@ -300,8 +313,8 @@ export default function VideosPage() {
                                             <div
                                                 key={note.id}
                                                 className={`p-3 rounded-lg ${currentTime >= note.start_time && (!note.end_time || currentTime <= note.end_time)
-                                                        ? 'bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400'
-                                                        : 'bg-gray-50 dark:bg-gray-900'
+                                                    ? 'bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400'
+                                                    : 'bg-gray-50 dark:bg-gray-900'
                                                     }`}
                                             >
                                                 <div className="flex justify-between items-start">

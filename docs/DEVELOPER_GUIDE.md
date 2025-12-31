@@ -35,6 +35,7 @@ kendo-translation/
 │   ├── lib/                # Utilities
 │   │   ├── llm/            # LLM provider
 │   │   ├── agents/         # JA-EN specialist
+│   │   ├── supabase/       # DB client
 │   │   └── data/           # Static data (onomatopoeia)
 │   └── types/              # TypeScript types
 ├── docs/                   # Documentation

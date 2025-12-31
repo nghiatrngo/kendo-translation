@@ -2,7 +2,6 @@
 
 import { Suspense } from 'react'
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 function LoginForm() {
@@ -13,7 +12,7 @@ function LoginForm() {
     const [mode, setMode] = useState<'login' | 'signup'>('login')
     const router = useRouter()
     const searchParams = useSearchParams()
-    const supabase = createClient()
+    // const supabase = createClient() - Removed
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -21,20 +20,22 @@ function LoginForm() {
         setError(null)
 
         try {
+            const endpoint = mode === 'signup' ? '/api/auth/signup' : '/api/auth/login'
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Authentication failed')
+            }
+
             if (mode === 'signup') {
-                const { error } = await supabase.auth.signUp({
-                    email,
-                    password,
-                })
-                if (error) throw error
                 setError('Check your email for the confirmation link!')
             } else {
-                const { error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password,
-                })
-                if (error) throw error
-
                 // Redirect to original destination or home
                 const redirectTo = searchParams.get('redirectTo') || '/'
                 router.push(redirectTo)
