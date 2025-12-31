@@ -102,11 +102,11 @@ kendo-translation/
 
 | Component | Platform | Status |
 |-----------|----------|--------|
-| Frontend | GitHub Pages | 🔵 Ready |
-| API | Render.com | 🔵 Ready |
-| Database | Supabase | 🔵 Ready |
+| Frontend | Render.com | ✅ Live |
+| API | Render.com | ✅ Live |
+| Database | Supabase | ✅ Live |
 
-**Live Demo**: [https://nghiatrngo.github.io/kendo-translation](https://nghiatrngo.github.io/kendo-translation)
+**Live Demo**: [https://kendo-translation.onrender.com](https://kendo-translation.onrender.com)
 
 ## 📝 API Endpoints
 
@@ -126,8 +126,9 @@ POST /api/translate/suggest # AI translation
 
 ## 📚 Documentation
 
-- [Project Description](./docs/project_description.md)
-- [Implementation Plan](./docs/implementation_plan.md)
+- [Architecture](./docs/ARCHITECTURE.md)
+- [User Tutorial](./docs/USER_TUTORIAL.md)
+- [Developer Guide](./docs/DEVELOPER_GUIDE.md)
 - [API Reference](./docs/API.md)
 
 ## 🤝 Contributing

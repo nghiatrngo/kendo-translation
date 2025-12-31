@@ -743,3 +743,210 @@ Step 4: Summary
 - List files updated
 - Update AI_MEMORY_short_term.md
 ```
+
+---
+
+## 📋 Complete Implementation Review & User Tutorial
+
+### Post-Deployment Review Command
+
+```
+Follow @kendo-translation/development_guideline.md : Complete Implementation Review & User Tutorial
+
+Step 0: Preparation
+- Read @kendo-translation/README.md (overview and features)
+- Read @kendo-translation/docs/API.md (API documentation)
+- Read @kendo-translation/packages/web/app/layout.tsx (navigation structure)
+- Review all implemented pages and components
+- Update docs/ai_docs/AI_LOG_user_understanding_YYYYMMDD.md
+
+Step 1: Implementation Audit
+- List all implemented routes and pages
+- List all API endpoints with status
+- List all components and their dependencies
+- Identify any incomplete features or TODOs
+- Verify database tables exist in Supabase
+
+Step 2: Update Documentation
+- Update README.md with accurate feature list
+- Update docs/API.md with any missing endpoints
+- Create/update docs/ARCHITECTURE.md with system diagram
+- Update all inline code comments
+- Ensure all environment variables are documented
+
+Step 3: Create User Tutorial
+- Create docs/USER_TUTORIAL.md with detailed usage guide
+- Include sections:
+  - Getting Started (first-time setup)
+  - Reader Mode (browsing articles, videos, terminology)
+  - Translator Mode (AI-assisted translation workflow)
+  - Dashboard Features (stats, dark mode, keyboard shortcuts)
+  - Tips & Tricks (keyboard shortcuts, TM usage)
+- Add screenshots for each section (use browser_subagent to capture)
+- Add step-by-step instructions with numbered lists
+
+Step 4: Create Developer Guide
+- Create docs/DEVELOPER_GUIDE.md
+- Include sections:
+  - Project Structure (directory layout)
+  - Environment Setup (local development)
+  - Adding New Features (patterns to follow)
+  - Testing Guidelines
+  - Deployment Process (Render.com, GitHub)
+- Reference existing code patterns
+
+Step 5: Quality Check
+- Run npm run build to verify no errors
+- Test production URL: https://kendo-translation.onrender.com
+- Verify all navigation links work
+- Verify dark mode toggle works
+- Verify AI suggestion works (requires OpenRouter API key)
+
+Step 6: Final Summary
+- Create comprehensive walkthrough.md with:
+  - All implemented features
+  - All routes and endpoints
+  - Database schema
+  - Deployment details
+  - Screenshots/recordings
+- Update AI_MEMORY with final implementation patterns
+- Suggest: "Project complete - ready for user acceptance testing"
+```
+
+---
+
+### Quick User Tutorial Template
+
+```
+Follow @kendo-translation/development_guideline.md : Create User Tutorial
+
+Step 0: Preparation
+- Navigate to production URL: https://kendo-translation.onrender.com
+- Capture screenshots of all main pages
+- Review implemented features
+
+Step 1: Create docs/USER_TUTORIAL.md
+
+## 📖 Kendo Translation User Tutorial
+
+### Table of Contents
+1. Getting Started
+2. Reader Mode
+3. Translator Mode
+4. Dashboard
+5. Keyboard Shortcuts
+
+### 1. Getting Started
+- Visit https://kendo-translation.onrender.com
+- [Screenshot of home page]
+- Click "Dashboard" to see platform stats
+- Toggle dark mode using the ☀️/🌙 button
+
+### 2. Reader Mode
+#### Browse Articles
+- Navigate to "Articles" to see all 634 articles
+- Click any article to view content
+- Japanese content shown on left, English on right
+- [Screenshot of article view]
+
+#### Terminology Search
+- Navigate to "Terminology" for 920+ Kendo terms
+- Use search bar to find specific terms
+- Click term to see reading, translation, domain
+- [Screenshot of terminology page]
+
+#### Video Notes
+- Navigate to "Videos" to see available videos
+- Click video to watch with synchronized notes
+- Add timestamped notes as you watch
+
+### 3. Translator Mode
+#### AI-Assisted Translation
+1. Navigate to "Translate" and select an article
+2. View source Japanese text on left
+3. Click "🤖 Get AI Suggestion" for AI translation
+4. Review the suggestion with JA-EN features:
+   - Honorific mappings (先生 → sensei)
+   - Onomatopoeia renderings
+   - Subject inference
+5. Edit as needed
+6. Click "💾 Save Translation"
+- [Screenshot of translation editor]
+
+#### Translation Memory
+- TM panel shows similar past translations
+- Click "Use this" to apply a TM match
+- % score shows similarity level
+
+### 4. Dashboard
+- View total articles, TM entries, terminology counts
+- Quick links to all translation modes
+- [Screenshot of dashboard]
+
+### 5. Keyboard Shortcuts
+| Shortcut | Action |
+|----------|--------|
+| Cmd/Ctrl+S | Save translation |
+| Cmd/Ctrl+Enter | Get AI suggestion |
+| ← / → | Navigate articles |
+
+Step 2: Capture Screenshots
+- Use browser_subagent to capture:
+  - Home page
+  - Dashboard
+  - Articles list
+  - Article detail (side-by-side)
+  - Translation editor with AI suggestion
+  - Terminology page
+  - Dark mode view
+
+Step 3: Add Screenshots to Tutorial
+- Embed all screenshots with:
+  ![Description](file:///absolute/path/to/screenshot.png)
+
+Step 4: Verify and Summary
+- Test tutorial by following steps as new user
+- Update AI_MEMORY_short_term.md
+```
+
+---
+
+### API Documentation Update Command
+
+```
+Follow @kendo-translation/development_guideline.md : Update API Documentation
+
+Step 0: Preparation
+- Read @kendo-translation/docs/API.md (current API docs)
+- Read all files in @kendo-translation/packages/web/app/api/ (all API routes)
+- Review request/response types
+
+Step 1: Document All Endpoints
+For each endpoint, document:
+- HTTP method and path
+- Request body (if applicable)
+- Query parameters (if applicable)
+- Response format with example
+- Error responses
+- Authentication requirements
+
+Step 2: Add Code Examples
+- Add curl examples for each endpoint
+- Add JavaScript/fetch examples
+- Add Python requests examples
+
+Step 3: Create API Reference Table
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| /api/articles | GET | No | List all articles |
+| /api/articles/[id] | GET | No | Get single article |
+| /api/translate/suggest | POST | No* | AI translation |
+| /api/tm/search | POST | No | TM similarity search |
+
+*Requires LLM API key in server environment
+
+Step 4: Verify
+- Test each endpoint with curl
+- Verify examples work
+- Update AI_MEMORY
+```
