@@ -14,18 +14,21 @@ CREATE TABLE IF NOT EXISTS profiles (
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Users can read their own profile
-CREATE POLICY IF NOT EXISTS "Users can read own profile"
+DROP POLICY IF EXISTS "Users can read own profile" ON profiles;
+CREATE POLICY "Users can read own profile"
     ON profiles FOR SELECT
     USING (auth.uid() = id);
 
 -- Policy: Users can update their own profile (except role)
-CREATE POLICY IF NOT EXISTS "Users can update own profile"
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
+CREATE POLICY "Users can update own profile"
     ON profiles FOR UPDATE
     USING (auth.uid() = id)
     WITH CHECK (auth.uid() = id);
 
 -- Policy: Admins can read all profiles
-CREATE POLICY IF NOT EXISTS "Admins can read all profiles"
+DROP POLICY IF EXISTS "Admins can read all profiles" ON profiles;
+CREATE POLICY "Admins can read all profiles"
     ON profiles FOR SELECT
     USING (
         EXISTS (
@@ -35,7 +38,8 @@ CREATE POLICY IF NOT EXISTS "Admins can read all profiles"
     );
 
 -- Policy: Admins can update any profile
-CREATE POLICY IF NOT EXISTS "Admins can update any profile"
+DROP POLICY IF EXISTS "Admins can update any profile" ON profiles;
+CREATE POLICY "Admins can update any profile"
     ON profiles FOR UPDATE
     USING (
         EXISTS (
@@ -59,11 +63,3 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
--- Create first admin user (replace with your email)
--- INSERT INTO profiles (id, username, role)
--- VALUES (
---     (SELECT id FROM auth.users WHERE email = 'your-email@example.com'),
---     'Admin',
---     'admin'
--- ) ON CONFLICT (id) DO UPDATE SET role = 'admin';

@@ -32,15 +32,18 @@ ALTER TABLE articles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
 -- Policy: Anyone can read articles
-CREATE POLICY IF NOT EXISTS "Articles are viewable by everyone" ON articles
+DROP POLICY IF EXISTS "Articles are viewable by everyone" ON articles;
+CREATE POLICY "Articles are viewable by everyone" ON articles
     FOR SELECT USING (true);
 
 -- Policy: Authenticated users can update articles
-CREATE POLICY IF NOT EXISTS "Authenticated users can update articles" ON articles
+DROP POLICY IF EXISTS "Authenticated users can update articles" ON articles;
+CREATE POLICY "Authenticated users can update articles" ON articles
     FOR UPDATE USING (auth.role() = 'authenticated');
 
 -- Policy: Authenticated users can insert articles
-CREATE POLICY IF NOT EXISTS "Authenticated users can insert articles" ON articles
+DROP POLICY IF EXISTS "Authenticated users can insert articles" ON articles;
+CREATE POLICY "Authenticated users can insert articles" ON articles
     FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 
 -- ============================================

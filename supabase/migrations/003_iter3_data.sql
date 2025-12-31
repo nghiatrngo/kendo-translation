@@ -53,15 +53,23 @@ ALTER TABLE videos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE video_notes ENABLE ROW LEVEL SECURITY;
 
 -- Terminology: public read, authenticated write
+DROP POLICY IF EXISTS "terminology_public_read" ON terminology;
 CREATE POLICY "terminology_public_read" ON terminology FOR SELECT USING (true);
+DROP POLICY IF EXISTS "terminology_auth_insert" ON terminology;
 CREATE POLICY "terminology_auth_insert" ON terminology FOR INSERT WITH CHECK (true);
 
 -- Videos: public read, authenticated write
+DROP POLICY IF EXISTS "videos_public_read" ON videos;
 CREATE POLICY "videos_public_read" ON videos FOR SELECT USING (true);
+DROP POLICY IF EXISTS "videos_auth_insert" ON videos;
 CREATE POLICY "videos_auth_insert" ON videos FOR INSERT WITH CHECK (true);
 
 -- Video notes: public read, owner write
+DROP POLICY IF EXISTS "video_notes_public_read" ON video_notes;
 CREATE POLICY "video_notes_public_read" ON video_notes FOR SELECT USING (true);
+DROP POLICY IF EXISTS "video_notes_auth_insert" ON video_notes;
 CREATE POLICY "video_notes_auth_insert" ON video_notes FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "video_notes_owner_update" ON video_notes;
 CREATE POLICY "video_notes_owner_update" ON video_notes FOR UPDATE USING (true);
+DROP POLICY IF EXISTS "video_notes_owner_delete" ON video_notes;
 CREATE POLICY "video_notes_owner_delete" ON video_notes FOR DELETE USING (true);

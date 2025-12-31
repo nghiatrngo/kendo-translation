@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import AgentConfigPanel from './AgentConfigPanel'
+import AgentConversationLog from './AgentConversationLog'
 
 interface Article {
     id: string
@@ -65,7 +67,7 @@ export default function TranslationEditor({ article, onSave }: TranslationEditor
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
     const [tmMatches, setTmMatches] = useState<TMMatch[]>([])
     const [tmLoading, setTmLoading] = useState(false)
-    const [showTmPanel, setShowTmPanel] = useState(true)
+    const [activeTab, setActiveTab] = useState<'tm' | 'config' | 'logs'>('tm')
 
     // Fetch TM matches when component loads or source text changes
     useEffect(() => {
@@ -380,67 +382,96 @@ export default function TranslationEditor({ article, onSave }: TranslationEditor
                 )}
             </div>
 
-            {/* TM Panel */}
-            {showTmPanel && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-medium text-amber-800 flex items-center gap-2">
-                            📚 Translation Memory
-                            {tmLoading && <span className="animate-pulse text-xs">(searching...)</span>}
-                        </h3>
-                        <button
-                            onClick={() => setShowTmPanel(false)}
-                            className="text-amber-600 hover:text-amber-800 text-sm"
-                        >
-                            Hide
-                        </button>
-                    </div>
-                    {tmMatches.length === 0 ? (
-                        <p className="text-sm text-amber-700">
-                            {tmLoading ? 'Searching translation memory...' : 'No similar translations found in TM.'}
-                        </p>
-                    ) : (
-                        <div className="space-y-3 max-h-64 overflow-y-auto">
-                            {tmMatches.map((match) => (
-                                <div
-                                    key={match.id}
-                                    className="bg-white rounded border border-amber-200 p-3 text-sm"
-                                >
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
-                                            {(match.similarity * 100).toFixed(0)}% match
-                                        </span>
-                                        <button
-                                            onClick={() => {
-                                                setContentEn(match.target_text)
-                                                setMessage({ type: 'success', text: 'TM translation applied!' })
-                                            }}
-                                            className="text-xs bg-amber-600 text-white px-2 py-1 rounded hover:bg-amber-700"
+            {/* Tabbed Panel: TM, Agent Config, Agent Logs */}
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+                {/* Tab Headers */}
+                <div className="flex border-b border-gray-200 bg-gray-50">
+                    <button
+                        onClick={() => setActiveTab('tm')}
+                        className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'tm'
+                                ? 'bg-white border-b-2 border-blue-500 text-blue-600'
+                                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                            }`}
+                    >
+                        📚 Translation Memory
+                        {tmMatches.length > 0 && (
+                            <span className="ml-1 text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
+                                {tmMatches.length}
+                            </span>
+                        )}
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('config')}
+                        className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'config'
+                                ? 'bg-white border-b-2 border-blue-500 text-blue-600'
+                                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                            }`}
+                    >
+                        ⚙️ Agent Config
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('logs')}
+                        className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === 'logs'
+                                ? 'bg-white border-b-2 border-blue-500 text-blue-600'
+                                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                            }`}
+                    >
+                        💬 Agent Logs
+                    </button>
+                </div>
+
+                {/* Tab Content */}
+                <div className="p-4 bg-white">
+                    {/* TM Tab */}
+                    {activeTab === 'tm' && (
+                        <div>
+                            {tmLoading && (
+                                <p className="text-sm text-gray-500 animate-pulse">Searching translation memory...</p>
+                            )}
+                            {!tmLoading && tmMatches.length === 0 && (
+                                <p className="text-sm text-gray-500">No similar translations found in TM.</p>
+                            )}
+                            {tmMatches.length > 0 && (
+                                <div className="space-y-3 max-h-64 overflow-y-auto">
+                                    {tmMatches.map((match) => (
+                                        <div
+                                            key={match.id}
+                                            className="bg-amber-50 rounded border border-amber-200 p-3 text-sm"
                                         >
-                                            Use this
-                                        </button>
-                                    </div>
-                                    <div className="text-gray-600 text-xs mb-1 line-clamp-2">
-                                        <strong>JP:</strong> {match.source_text.substring(0, 100)}...
-                                    </div>
-                                    <div className="text-gray-800 text-xs line-clamp-2">
-                                        <strong>EN:</strong> {match.target_text.substring(0, 100)}...
-                                    </div>
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                                                    {(match.similarity * 100).toFixed(0)}% match
+                                                </span>
+                                                <button
+                                                    onClick={() => {
+                                                        setContentEn(match.target_text)
+                                                        setMessage({ type: 'success', text: 'TM translation applied!' })
+                                                    }}
+                                                    className="text-xs bg-amber-600 text-white px-2 py-1 rounded hover:bg-amber-700"
+                                                >
+                                                    Use this
+                                                </button>
+                                            </div>
+                                            <div className="text-gray-600 text-xs mb-1 line-clamp-2">
+                                                <strong>JP:</strong> {match.source_text.substring(0, 100)}...
+                                            </div>
+                                            <div className="text-gray-800 text-xs line-clamp-2">
+                                                <strong>EN:</strong> {match.target_text.substring(0, 100)}...
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
+                            )}
                         </div>
                     )}
-                </div>
-            )}
 
-            {!showTmPanel && (
-                <button
-                    onClick={() => setShowTmPanel(true)}
-                    className="text-sm text-amber-600 hover:text-amber-800"
-                >
-                    📚 Show Translation Memory ({tmMatches.length} matches)
-                </button>
-            )}
+                    {/* Agent Config Tab */}
+                    {activeTab === 'config' && <AgentConfigPanel />}
+
+                    {/* Agent Logs Tab */}
+                    {activeTab === 'logs' && <AgentConversationLog autoRefresh={false} />}
+                </div>
+            </div>
         </div>
     )
 }

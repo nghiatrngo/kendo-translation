@@ -1,20 +1,57 @@
 @import "tailwindcss";
 
+/* 
+ * Solarized-inspired color scheme with improved contrast
+ * Light theme: warm cream background with dark text
+ * Dark theme: deep navy background with light text
+ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Solarized Light - warm cream tones */
+  --background: #fdf6e3;
+  --foreground: #073642;
+  --surface: #eee8d5;
+  --surface-alt: #fefbf3;
+  --border: #93a1a1;
+  --border-light: #c9c2b0;
+  --text-muted: #586e75;
+  --text-subtle: #657b83;
+  --accent: #268bd2;
+  --accent-hover: #1a6699;
+  --success: #859900;
+  --warning: #b58900;
+  --error: #dc322f;
 }
 
-/* Dark mode based on class (Tailwind dark mode) */
+/* Dark mode - deep navy with high contrast */
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  --background: #002b36;
+  --foreground: #fdf6e3;
+  --surface: #073642;
+  --surface-alt: #094452;
+  --border: #586e75;
+  --border-light: #2c4a52;
+  --text-muted: #93a1a1;
+  --text-subtle: #839496;
+  --accent: #268bd2;
+  --accent-hover: #3ea8f5;
+  --success: #859900;
+  --warning: #b58900;
+  --error: #dc322f;
 }
 
 /* Light mode class for explicit light mode */
 .light {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fdf6e3;
+  --foreground: #073642;
+  --surface: #eee8d5;
+  --surface-alt: #fefbf3;
+  --border: #93a1a1;
+  --border-light: #c9c2b0;
+  --text-muted: #586e75;
+  --text-subtle: #657b83;
+  --accent: #268bd2;
+  --accent-hover: #1a6699;
 }
 
 @theme inline {
@@ -27,8 +64,12 @@
 /* Fallback for system preference when no explicit class is set */
 @media (prefers-color-scheme: dark) {
   :root:not(.light):not(.dark) {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #002b36;
+    --foreground: #fdf6e3;
+    --surface: #073642;
+    --surface-alt: #094452;
+    --border: #586e75;
+    --text-muted: #93a1a1;
   }
 }
 
@@ -39,42 +80,169 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Additional dark mode overrides for common elements */
+/* ===== Light Mode Solarized Overrides ===== */
+
+/* Surface colors */
+.bg-white {
+  background-color: var(--surface-alt) !important;
+}
+
+.bg-gray-50 {
+  background-color: var(--surface) !important;
+}
+
+.bg-gray-100 {
+  background-color: var(--surface) !important;
+}
+
+/* Border colors */
+.border-gray-200 {
+  border-color: var(--border-light) !important;
+}
+
+.border-gray-300 {
+  border-color: var(--border) !important;
+}
+
+/* Text colors - improved contrast */
+.text-gray-900 {
+  color: var(--foreground) !important;
+}
+
+.text-gray-800 {
+  color: var(--foreground) !important;
+}
+
+.text-gray-700 {
+  color: var(--foreground) !important;
+}
+
+.text-gray-600 {
+  color: var(--text-muted) !important;
+}
+
+.text-gray-500 {
+  color: var(--text-subtle) !important;
+}
+
+.text-gray-400 {
+  color: var(--text-subtle) !important;
+}
+
+/* Form elements */
+input, textarea, select {
+  background-color: var(--surface-alt);
+  border-color: var(--border-light);
+  color: var(--foreground);
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(38, 139, 210, 0.2);
+}
+
+/* Accent colors */
+.text-blue-600 {
+  color: var(--accent) !important;
+}
+
+.bg-blue-600 {
+  background-color: var(--accent) !important;
+}
+
+.bg-blue-600:hover {
+  background-color: var(--accent-hover) !important;
+}
+
+.border-blue-500 {
+  border-color: var(--accent) !important;
+}
+
+/* ===== Dark Mode Overrides ===== */
+
 .dark .bg-white {
-  background-color: #1f2937 !important;
+  background-color: var(--surface) !important;
 }
 
 .dark .bg-gray-50 {
-  background-color: #111827 !important;
+  background-color: var(--background) !important;
+}
+
+.dark .bg-gray-100 {
+  background-color: var(--surface-alt) !important;
 }
 
 .dark .border-gray-200 {
-  border-color: #374151 !important;
+  border-color: var(--border-light) !important;
 }
 
-.dark .text-gray-900 {
-  color: #f9fafb !important;
+.dark .border-gray-300 {
+  border-color: var(--border) !important;
+}
+
+.dark .text-gray-900,
+.dark .text-gray-800,
+.dark .text-gray-700 {
+  color: var(--foreground) !important;
 }
 
 .dark .text-gray-600 {
-  color: #d1d5db !important;
+  color: var(--text-muted) !important;
 }
 
-.dark .text-gray-500 {
-  color: #9ca3af !important;
+.dark .text-gray-500,
+.dark .text-gray-400 {
+  color: var(--text-subtle) !important;
 }
 
-/* Form elements in dark mode */
 .dark input,
 .dark textarea,
 .dark select {
-  background-color: #374151;
-  border-color: #4b5563;
-  color: #f9fafb;
+  background-color: var(--surface-alt);
+  border-color: var(--border);
+  color: var(--foreground);
 }
 
 .dark input:focus,
 .dark textarea:focus,
 .dark select:focus {
-  border-color: #3b82f6;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(38, 139, 210, 0.3);
+}
+
+/* Scrollbar styling for dark mode */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--text-subtle);
+}
+
+/* Card-like containers */
+.dark .rounded-lg.shadow-sm {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Code blocks */
+code {
+  background-color: var(--surface);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+
+.dark code {
+  background-color: var(--surface-alt);
 }

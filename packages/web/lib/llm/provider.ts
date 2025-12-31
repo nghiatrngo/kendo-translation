@@ -101,7 +101,7 @@ class OpenRouterProvider implements LLMProvider {
     }
 
     getDefaultModel(): string {
-        return "anthropic/claude-3.5-sonnet";
+        return "meta-llama/llama-3.3-70b-instruct:free";
     }
 
     async chat(messages: Message[], options?: ChatOptions): Promise<ChatResponse> {
@@ -201,6 +201,7 @@ export function getAgentProvider(
 
 /**
  * Helper to make a chat request with agent-specific configuration
+ * Now includes logging for debugging and transparency
  */
 export async function agentChat(
     agentType: AgentType,
@@ -208,7 +209,36 @@ export async function agentChat(
     options?: Omit<ChatOptions, "model">
 ): Promise<ChatResponse> {
     const { provider, model } = getAgentProvider(agentType);
-    return provider.chat(messages, { ...options, model });
+    const startTime = Date.now();
+
+    try {
+        const response = await provider.chat(messages, { ...options, model });
+
+        // Log successful call (dynamic import to avoid circular deps)
+        const { logAgentCall } = await import('./agent-logger');
+        logAgentCall({
+            agentType,
+            messages,
+            response: response.content,
+            model: response.model,
+            usage: response.usage,
+            durationMs: Date.now() - startTime,
+        });
+
+        return response;
+    } catch (error) {
+        // Log failed call
+        const { logAgentCall } = await import('./agent-logger');
+        logAgentCall({
+            agentType,
+            messages,
+            response: '',
+            model,
+            durationMs: Date.now() - startTime,
+            error: error instanceof Error ? error.message : 'Unknown error',
+        });
+        throw error;
+    }
 }
 
 /**

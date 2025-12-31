@@ -18,16 +18,19 @@ CREATE INDEX IF NOT EXISTS idx_bookmarks_content ON bookmarks(content_type, cont
 ALTER TABLE bookmarks ENABLE ROW LEVEL SECURITY;
 
 -- Users can only see their own bookmarks
+DROP POLICY IF EXISTS "Users can read own bookmarks" ON bookmarks;
 CREATE POLICY "Users can read own bookmarks"
     ON bookmarks FOR SELECT
     USING (auth.uid() = user_id);
 
 -- Users can create their own bookmarks
+DROP POLICY IF EXISTS "Users can create bookmarks" ON bookmarks;
 CREATE POLICY "Users can create bookmarks"
     ON bookmarks FOR INSERT
     WITH CHECK (auth.uid() = user_id);
 
 -- Users can delete their own bookmarks
+DROP POLICY IF EXISTS "Users can delete own bookmarks" ON bookmarks;
 CREATE POLICY "Users can delete own bookmarks"
     ON bookmarks FOR DELETE
     USING (auth.uid() = user_id);
