@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { ThemeProvider, ThemeToggle } from "@/components/ThemeProvider";
+import { AuthHeader } from "@/components/AuthHeader";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,7 +26,7 @@ function Header() {
       <nav className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="text-xl font-bold text-gray-900 dark:text-white">
-            🥋 Kendo Translation
+            Kendo Translation
           </Link>
           <div className="flex items-center gap-4 md:gap-6">
             <div className="hidden md:flex gap-6">
@@ -46,9 +47,7 @@ function Header() {
               </Link>
             </div>
             <ThemeToggle />
-            <Link href="/login" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
-              Login
-            </Link>
+            <AuthHeader />
           </div>
         </div>
         {/* Mobile Navigation */}

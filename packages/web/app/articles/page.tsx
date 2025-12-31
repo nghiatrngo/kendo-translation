@@ -30,12 +30,12 @@ export default async function ArticlesPage() {
         <div className="container mx-auto px-4 py-8">
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">📚 Articles</h1>
-                    <p className="text-gray-600 mt-1">
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">📚 Articles</h1>
+                    <p className="text-gray-600 dark:text-gray-400 mt-1">
                         Browse and read bilingual Kendo articles from Kendo Jidai
                     </p>
                 </div>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
                     Showing {articles?.length || 0} of {count || 0} articles
                 </span>
             </div>
@@ -55,15 +55,15 @@ export default async function ArticlesPage() {
                         <Link
                             key={article.id}
                             href={`/articles/${article.id}`}
-                            className="block bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:border-blue-300 hover:shadow-md transition"
+                            className="block bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-500 hover:shadow-md transition"
                         >
                             <div className="flex items-start justify-between">
                                 <div className="flex-1">
-                                    <h2 className="text-lg font-semibold text-gray-900 hover:text-blue-600">
+                                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white hover:text-blue-600">
                                         {article.title}
                                     </h2>
                                     {article.title_ja && (
-                                        <p className="text-gray-600 mt-1 text-sm">
+                                        <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm">
                                             {article.title_ja}
                                         </p>
                                     )}
@@ -84,7 +84,7 @@ export default async function ArticlesPage() {
                                     </span>
                                 </div>
                             </div>
-                            <div className="flex gap-3 mt-2 text-xs text-gray-500">
+                            <div className="flex gap-3 mt-2 text-xs text-gray-500 dark:text-gray-400">
                                 {article.source_url_ja && <span>🇯🇵 Japanese</span>}
                                 {article.source_url_en && <span>🇬🇧 English</span>}
                             </div>

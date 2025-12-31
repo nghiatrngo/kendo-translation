@@ -950,3 +950,184 @@ Step 4: Verify
 - Verify examples work
 - Update AI_MEMORY
 ```
+
+---
+
+## 🔧 Debug Iteration: Phase 2 Issues
+
+### Query: Fix All Walkthrough Issues
+
+```
+Follow @kendo-translation/development_guideline.md : Debug Iteration - Fix Walkthrough Issues
+
+Step 0: Preparation
+- Read @kendo-translation/docs/debug_progress.md (Issues 4-10)
+- Read @youtube_note/index.html (video player and noting system patterns)
+- Read @kendo-translation/packages/web/app/layout.tsx
+- Read @kendo-translation/packages/web/components/ThemeProvider.tsx
+
+Step 1: Fix Dark Mode (Issue 4)
+- Check CSS cascade for dark: classes
+- Ensure body and main containers have dark:bg-gray-900
+- Test: toggle should visibly switch page background
+
+Step 2: Implement Reader vs Translator Views (Issue 5)
+- Create two view modes for articles:
+  - **Reader Mode**: Read-only side-by-side view (public)
+  - **Translator Mode**: Editable translation editor (authenticated)
+- Add mode toggle or role-based routing
+- Pattern: /articles/[id] (reader) vs /translate/[id] (translator)
+
+Step 3: Add Terminology Pagination (Issue 6)
+- Update app/terminology/page.tsx
+- Add pagination controls (prev/next or load more)
+- Remove .limit(50) or add page parameter
+- Show total count vs current page
+
+Step 4: Fix Login Feedback (Issue 7)
+- Update layout.tsx header to show user email when logged in
+- Replace "Login" button with "Logout" when authenticated
+- Redirect to dashboard after successful login
+- Show user-specific data on dashboard
+
+Step 5: Implement User Roles & Admin Panel (Issue 8)
+- Add user_role column to profiles table (admin, translator, reader)
+- Create app/admin/page.tsx (admin-only access)
+- Admin features:
+  - View all users
+  - Change user roles
+  - View translation stats
+- Update middleware to check roles
+
+Step 6: Remove Emoticons from Title (Issue 9)
+- Update layout.tsx: change "🥋 Kendo Translation" to "Kendo Translation"
+- Clean professional appearance
+
+Step 7: Complete Videos Page (Issue 10)
+- Port video player from @youtube_note/index.html
+- Port noting system from @youtube_note
+- Implement:
+  - YouTube IFrame embed
+  - Video controls
+  - Timestamped notes (start_time, end_time, note_text)
+  - "Show Transcript" button (fetch from YouTube API if available)
+- Create video_notes table if not exists
+
+Step 8: Verify All Fixes
+- Test each issue is resolved
+- Update debug_progress.md with results
+- Capture screenshots for walkthrough
+- Push changes to GitHub
+```
+
+---
+
+### Priority Fix Order
+
+| Priority | Issue | Effort | Impact |
+|----------|-------|--------|--------|
+| 1 | Issue 5: Reader/Translator Views | High | Critical for UX |
+| 2 | Issue 7: Login Feedback | Medium | Critical for auth flow |
+| 3 | Issue 8: User Roles + Admin | High | Critical for permissions |
+| 4 | Issue 10: Videos Page | High | Feature complete |
+| 5 | Issue 4: Dark Mode | Low | Polish |
+| 6 | Issue 6: Terminology Pagination | Low | Usability |
+| 7 | Issue 9: Remove Emoticons | Low | Polish |
+
+---
+
+### Quick Fix Query (Issues 4, 6, 9)
+
+```
+Follow @kendo-translation/development_guideline.md : Quick Fixes - Dark Mode, Pagination, Emoticons
+
+Step 1: Fix Dark Mode CSS
+- Verify ThemeProvider adds 'dark' class to <html>
+- Add dark mode styles to globals.css if needed
+- Test toggle functionality
+
+Step 2: Add Terminology Pagination
+- Update terminology/page.tsx to add pagination
+- Options: infinite scroll, load more button, or page numbers
+- Keep search/filter functionality
+
+Step 3: Remove Emoticons
+- Update layout.tsx header title
+- Remove 🥋 emoji prefix
+
+Step 4: Verify
+- Test all three fixes
+- Update debug_progress.md
+```
+
+---
+
+### Core Feature Query (Issues 5, 7, 8)
+
+```
+Follow @kendo-translation/development_guideline.md : Core Features - Roles & Views
+
+Step 1: Database Schema
+- Add user_role to profiles: 'admin' | 'translator' | 'reader'
+- Create RLS policies for role-based access
+
+Step 2: Reader vs Translator Views
+- /articles/[id]: Public read-only side-by-side
+- /translate/[id]: Authenticated translation editor
+- Different UI for each mode
+
+Step 3: Auth UI
+- Show logged-in user in header
+- Logout button when authenticated
+- Role indicator (admin badge, translator badge)
+
+Step 4: Admin Panel
+- /admin route (admin-only)
+- User list with role dropdown
+- Translation statistics
+- Article status overview
+
+Step 5: Verify
+- Test as: guest, reader, translator, admin
+- Verify permissions work correctly
+```
+
+---
+
+### Videos Feature Query (Issue 10)
+
+```
+Follow @kendo-translation/development_guideline.md : Complete Videos Feature
+
+Step 0: Preparation
+- Read @youtube_note/index.html (video player pattern)
+- Read @youtube_note/server-supabase.js (video notes API)
+- Read @youtube_note/public/index.html (UI patterns)
+
+Step 1: Video Player Component
+- Create components/VideoPlayer.tsx
+- YouTube IFrame embed with API
+- Play/pause, seek, volume controls
+- Current timestamp display
+
+Step 2: Notes System
+- Create video_notes table (video_id, user_id, start_time, end_time, note_text)
+- Real-time note display synced to video playback
+- Add note at current timestamp
+
+Step 3: Transcript Feature
+- "Show Transcript" toggle button
+- Fetch YouTube auto-captions if available
+- Display transcript with clickable timestamps
+
+Step 4: Videos List Page
+- Update app/videos/page.tsx
+- Show video thumbnails and titles
+- Add new video form (YouTube URL input)
+
+Step 5: Verify
+- Add test video
+- Add timestamped notes
+- Test transcript display
+- Verify notes persist
+```

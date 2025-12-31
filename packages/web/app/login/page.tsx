@@ -48,8 +48,8 @@ function LoginForm() {
     }
 
     return (
-        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-md">
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
                 🔐 {mode === 'login' ? 'Login' : 'Sign Up'}
             </h1>
 
@@ -61,7 +61,7 @@ function LoginForm() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Email
                     </label>
                     <input
@@ -70,7 +70,7 @@ function LoginForm() {
                         onChange={(e) => setEmail(e.target.value)}
                         required
                         placeholder="your@email.com"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
                 <div>
@@ -96,7 +96,7 @@ function LoginForm() {
                 </button>
             </form>
 
-            <p className="text-center text-gray-600 text-sm mt-6">
+            <p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-6">
                 {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
                 <button
                     onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
@@ -114,7 +114,7 @@ export default function LoginPage() {
         <div className="min-h-[80vh] flex items-center justify-center">
             <Suspense fallback={
                 <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md text-center">
-                    <p className="text-gray-500">Loading...</p>
+                    <p className="text-gray-500 dark:text-gray-400">Loading...</p>
                 </div>
             }>
                 <LoginForm />

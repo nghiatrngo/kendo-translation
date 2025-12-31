@@ -5,7 +5,7 @@ export default function Home() {
       <section className="bg-gradient-to-br from-blue-900 to-indigo-800 text-white py-20">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-5xl font-bold mb-6">
-            🥋 Kendo Translation
+            Kendo Translation
           </h1>
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
             Translate and read Kendo resources from Japanese to English.
@@ -30,7 +30,7 @@ export default function Home() {
 
       {/* Features Section */}
       <section className="py-16 container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-12 text-gray-900">
+        <h2 className="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-white">
           Features
         </h2>
         <div className="grid md:grid-cols-3 gap-8">
@@ -53,7 +53,7 @@ export default function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="bg-gray-100 py-12">
+      <section className="bg-gray-100 dark:bg-gray-800 py-12">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8 text-center">
             <StatCard number="315+" label="Articles" />
@@ -79,10 +79,10 @@ export default function Home() {
 
 function FeatureCard({ emoji, title, description }: { emoji: string; title: string; description: string }) {
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md text-center">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md text-center">
       <div className="text-4xl mb-4">{emoji}</div>
-      <h3 className="text-xl font-semibold mb-2 text-gray-900">{title}</h3>
-      <p className="text-gray-600">{description}</p>
+      <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">{title}</h3>
+      <p className="text-gray-600 dark:text-gray-300">{description}</p>
     </div>
   );
 }
@@ -91,7 +91,7 @@ function StatCard({ number, label }: { number: string; label: string }) {
   return (
     <div>
       <div className="text-3xl font-bold text-blue-600">{number}</div>
-      <div className="text-gray-600">{label}</div>
+      <div className="text-gray-600 dark:text-gray-300">{label}</div>
     </div>
   );
 }
