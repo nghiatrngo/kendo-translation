@@ -14,6 +14,8 @@ import useMacRag from '@/lib/hooks/useMacRag';
 import ContextBuilderPanel from '@/components/translation/ContextBuilderPanel';
 import TranslationCandidates from '@/components/translation/TranslationCandidates';
 import PostTranslationPanel from '@/components/translation/PostTranslationPanel';
+import AgentConfigPanel from '@/components/AgentConfigPanel';
+import AgentConversationLog from '@/components/AgentConversationLog';
 
 // Types
 interface Article {
@@ -38,6 +40,9 @@ export default function MacRagTranslatePage() {
 
     // Phase state
     const [currentPhase, setCurrentPhase] = useState<Phase>('loading');
+
+    // Tab state for Agent Config / Logs panel
+    const [activeTab, setActiveTab] = useState<'config' | 'logs'>('config');
 
     // MAC-RAG hook
     const macRag = useMacRag();
@@ -454,6 +459,49 @@ export default function MacRagTranslatePage() {
                     ⚠️ {macRag.error}
                 </div>
             )}
+
+            {/* Agent Config / Logs Panel */}
+            <div style={{ marginTop: 24, border: '1px solid var(--border-color, #93a1a1)', borderRadius: 8, overflow: 'hidden' }}>
+                {/* Tab Headers */}
+                <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color, #93a1a1)', background: 'var(--bg-secondary, #eee8d5)' }}>
+                    <button
+                        onClick={() => setActiveTab('config')}
+                        style={{
+                            padding: '8px 16px',
+                            fontSize: 13,
+                            fontWeight: 500,
+                            border: 'none',
+                            background: activeTab === 'config' ? 'var(--bg-primary, #fdf6e3)' : 'transparent',
+                            borderBottom: activeTab === 'config' ? '2px solid var(--accent, #268bd2)' : 'none',
+                            color: activeTab === 'config' ? 'var(--accent, #268bd2)' : 'var(--text-secondary, #586e75)',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        ⚙️ Agent Config
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('logs')}
+                        style={{
+                            padding: '8px 16px',
+                            fontSize: 13,
+                            fontWeight: 500,
+                            border: 'none',
+                            background: activeTab === 'logs' ? 'var(--bg-primary, #fdf6e3)' : 'transparent',
+                            borderBottom: activeTab === 'logs' ? '2px solid var(--accent, #268bd2)' : 'none',
+                            color: activeTab === 'logs' ? 'var(--accent, #268bd2)' : 'var(--text-secondary, #586e75)',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        💬 Agent Logs
+                    </button>
+                </div>
+
+                {/* Tab Content */}
+                <div style={{ padding: 16, background: 'var(--bg-primary, #fdf6e3)' }}>
+                    {activeTab === 'config' && <AgentConfigPanel />}
+                    {activeTab === 'logs' && <AgentConversationLog autoRefresh={false} />}
+                </div>
+            </div>
         </div>
     );
 }
