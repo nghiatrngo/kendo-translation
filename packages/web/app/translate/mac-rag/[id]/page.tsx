@@ -49,7 +49,9 @@ export default function MacRagTranslatePage() {
                 const response = await fetch(`/api/articles/${articleId}`);
                 if (!response.ok) throw new Error('Article not found');
                 const data = await response.json();
-                setArticle(data);
+                // API returns { article: {...} } so extract it
+                const articleData = data.article || data;
+                setArticle(articleData);
                 setCurrentPhase('context');
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Failed to load article');
