@@ -71,7 +71,7 @@ export function AuthHeader() {
 
                 {/* User Email */}
                 <span className="text-sm text-gray-600 dark:text-gray-300 hidden md:inline">
-                    {profile.username || profile.email.split('@')[0]}
+                    {profile.username || (profile.email ? profile.email.split('@')[0] : 'User')}
                 </span>
 
                 {/* Admin Link */}
