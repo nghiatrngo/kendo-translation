@@ -351,6 +351,7 @@ Follow @kendo-translation/browser_testing_guideline.md : MAC-RAG Complete Browse
 IMPORTANT: Act like a human user. Stay in the same browser tab. Navigate via clicks, not URLs.
 
 Step 0: Session Setup
+- Review @kendo-translation/docs/mac_rag_implementation_plan.md
 - Read @kendo-translation/browser_testing_guideline.md first
 - Navigate to http://localhost:3000 (root)
 - Observe the landing page, read the content
@@ -370,6 +371,7 @@ Step 1: Navigate to MAC-RAG (via clicks, not URLs)
 - Verify you see a list of articles with "Translate →" buttons
 
 Step 2: Phase 1 - Context Building
+- Read @kendo-translation/browser_testing_guideline.md first
 - Click "Translate →" on the first article with Japanese content
 - Wait 5 seconds for page and context to load
 - Observe the 3-phase indicator at top (1 Context, 2 Translate, 3 Quality)
@@ -383,6 +385,7 @@ Step 2: Phase 1 - Context Building
 - Click "→ Start Translation" button
 
 Step 3: Phase 2 - Translation Candidates
+- Read @kendo-translation/browser_testing_guideline.md first
 - Wait 8-15 seconds for LLM to generate translations
 - Observe the loading state
 - When candidates appear, read all 3 options:
@@ -395,6 +398,7 @@ Step 3: Phase 2 - Translation Candidates
 - Click "Accept & Continue" button
 
 Step 4: Phase 3 - Quality & Save
+- Read @kendo-translation/browser_testing_guideline.md first
 - Wait 5-10 seconds for quality scoring
 - Observe the quality scores:
   * Fluency score
@@ -408,6 +412,7 @@ Step 4: Phase 3 - Quality & Save
 - Wait for save confirmation
 
 Step 5: Completion & Verification
+- Read @kendo-translation/browser_testing_guideline.md first
 - Observe the completion message
 - Screenshot the "Translation Complete" panel
 - Click "View Article" to see the saved translation
@@ -422,6 +427,7 @@ Step 6: Session Cleanup
 - Compile final test report
 
 Step 7: Document Results
+- Review @kendo-translation/docs/mac_rag_implementation_plan.md
 - Update docs/ai_docs/AI_MEMORY_short_term-MAC_RAG.md with findings
 - Create a test summary showing:
   * All phases completed (✅/❌)

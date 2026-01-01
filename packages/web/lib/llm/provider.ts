@@ -251,3 +251,23 @@ export async function chat(
     const provider = getProvider();
     return provider.chat(messages, options);
 }
+
+/**
+ * Generic callLLM function for modules that need a simple interface
+ * Used by multi-gen.ts and other translation modules
+ */
+export interface CallLLMOptions {
+    messages: Message[];
+    temperature?: number;
+    maxTokens?: number;
+    responseFormat?: 'text' | 'json';
+}
+
+export async function callLLM(options: CallLLMOptions): Promise<ChatResponse> {
+    return chat(options.messages, {
+        temperature: options.temperature,
+        maxTokens: options.maxTokens,
+        responseFormat: options.responseFormat,
+    });
+}
+
