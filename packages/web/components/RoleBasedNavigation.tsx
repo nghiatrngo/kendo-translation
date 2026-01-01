@@ -20,6 +20,7 @@ const navItems: NavItem[] = [
     { href: '/videos', label: 'Videos', roles: ['admin', 'translator', 'reader'] },
     { href: '/terminology', label: 'Terminology', shortLabel: 'Terms', roles: ['admin', 'translator', 'reader'] },
     { href: '/translate', label: 'Translate', roles: ['admin', 'translator'] },
+    { href: '/translate/mac-rag', label: '🔬 MAC-RAG', shortLabel: 'MAC-RAG', roles: ['admin', 'translator'] },
     { href: '/bookmarks', label: 'Bookmarks', roles: ['admin', 'translator', 'reader'] },
     { href: '/admin', label: 'Admin', roles: ['admin'] },
 ];

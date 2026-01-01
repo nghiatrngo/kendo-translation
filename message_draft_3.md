@@ -105,77 +105,236 @@ Step 5: Update Documentation
 
 ---
 
-# MAC-RAG Translation System: Layer 1 Implementation
+# MAC-RAG Translation System: Full Browser Test
 
-## User Query for TODO: Implement Layer 1 Core Pipeline
+## User Query for TODO: MAC-RAG Full Pipeline Browser Test
 
 ```
-Follow @kendo-translation/development_guideline.md : MAC-RAG Layer 1 Core Pipeline
-Reference: @kendo-translation/docs/mac_rag_implementation_plan.md
+Follow @kendo-translation/development_guideline.md : MAC-RAG Full Pipeline Test
 
 Step 0: Preparation
-- Read docs/mac_rag_implementation_plan.md (implementation phases)
 - Ensure dev server is running on http://localhost:3001
-- Verify database is connected (Supabase)
+- Login as translator (translator-1@test.com / !12345678!)
 
-Step 1: Create Context Builder (Step 1.1) ✅
-- Create lib/context/context-builder.ts:
-  * Define ContextObject interface
-  * Build basic context from source text
-  * Extract source/target language
-  * Return structured context object
+Step 1: Test MAC-RAG API Endpoint
+- Open browser DevTools → Network tab
+- Navigate to /translate and select an article with Japanese content
+- Open a new browser tab and go to: http://localhost:3001/api/translate/mac-rag
+  * Verify GET returns pipeline info JSON
+  * Note the phases: context, translate, score, full
 
-Step 2: Implement Domain/Style Analyzers (Step 1.2) ✅
-- Create lib/context/analyzers.ts:
-  * Rule-based domain classification (kendo, general, technical)
-  * Style detection (formal/casual based on keigo markers)
-  * Entity extraction (basic keyword matching for Kendo terms)
-  * Kendo terminology database (70+ terms)
+Step 2: Test Context Building Phase
+- Use DevTools console to test the API:
+  ```javascript
+  fetch('/api/translate/mac-rag', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      sourceText: '剣道の基本は構えと足さばきです。竹刀を正しく持ち、中段の構えから始めましょう。',
+      phase: 'context'
+    })
+  }).then(r => r.json()).then(console.log);
+  ```
+- Verify response contains:
+  * context.domain.primary === 'kendo'
+  * tmMatches array (may be empty)
+  * terminology.requiredTerms with Kendo terms
+  * jaAnalysis with subjects and honorifics
+  * coverageReport with gaps/strengths
 
-Step 3: Create Context Retrieval API (Step 1.3) ✅
-- Create app/api/context/retrieve/route.ts:
-  * TM lookup with simple matching
-  * Terminology retrieval
-  * Coverage calculation
+Step 3: Test Full Pipeline
+- Run full pipeline:
+  ```javascript
+  fetch('/api/translate/mac-rag', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      sourceText: '剣道の基本は構えと足さばきです。竹刀を正しく持ち、中段の構えから始めましょう。',
+      phase: 'full'
+    })
+  }).then(r => r.json()).then(data => {
+    console.log('Context:', data.context);
+    console.log('Candidates:', data.candidates);
+    console.log('Quality:', data.qualityAssessment);
+    console.log('Routing:', data.routing);
+  });
+  ```
+- Verify response contains:
+  * candidates array with 3 options (literal, natural, formal)
+  * Each candidate has confidence score
+  * qualityAssessment with scores (fluency, adequacy, terminology, style)
+  * routing.decision (auto_accept/light_pe/standard_pe/full_revision)
 
-Step 4: Create Quality Scorer (Step 1.5) ✅
-- Create lib/quality/scorer.ts:
-  * LLM-assisted quality evaluation
-  * Score fluency, adequacy, terminology, style
-  * Routing recommendation (auto/light PE/standard PE/full revision)
+Step 4: Verify Kendo Domain Detection
+- Test with Kendo-specific text:
+  * "残心を忘れずに" → should detect domain: kendo
+  * "先生のご指導" → should detect keigo: sonkeigo
+  * "バシッと打つ" → should detect onomatopoeia
 
-Step 5: Create Memory Save API (Step 1.6) ✅
-- Create app/api/post/save/route.ts:
-  * Save translation pairs to TM
-  * Update terminology database
-  * Record context feedback
+Step 5: Test Existing Translation Editor
+- Go to /translate
+- Select an article with Japanese content
+- Click "🤖 Get AI Suggestion"
+- Verify translation is returned
+- Check Agent Logs for conversation history
+- Accept and Save translation
 
-Step 6: Update Translation API
-- Modify app/api/translate/suggest/route.ts:
-  * Integrate context builder
-  * Use retrieval results in prompt
-  * Return quality scores with translation
-
-Step 7: Verification
-- Test context builder with Kendo text
-- Verify domain detection returns "kendo"
-- Verify terminology extraction finds terms
-- Test end-to-end translation flow
+Step 6: Document Results
+- Note all test outcomes
+- Capture any errors in console
+- Document timing information from responses
 ```
 
-## Layer 1 Files Created
+## MAC-RAG API Test Cases
 
-| File | Purpose | Status |
-|------|---------|--------|
-| `lib/context/context-builder.ts` | ContextObject + buildContext() | ✅ |
-| `lib/context/analyzers.ts` | Domain/style/entity detection | ✅ |
-| `app/api/context/retrieve/route.ts` | TM + terminology retrieval | ✅ |
-| `lib/quality/scorer.ts` | LLM quality assessment | ✅ |
-| `app/api/post/save/route.ts` | Memory save endpoint | ✅ |
+| Test | Input | Expected Output |
+|------|-------|-----------------|
+| Domain Detection | "竹刀の振り方" | domain: "kendo" |
+| Term Extraction | "面と小手" | terms: men, kote |
+| Keigo Detection | "いらっしゃいます" | keigoLevel: "sonkeigo" |
+| Multi-Candidate | Any text | 3 candidates (literal/natural/formal) |
+| Quality Scoring | Translation pair | scores: fluency, adequacy, terminology, style |
 
-## Next Steps: Layer 2 (UI & User Control)
+## Expected Timing (typical)
 
-After Layer 1 is verified, proceed to:
-- ContextBuilderPanel.tsx
-- TranslationCandidates.tsx
-- PostTranslationPanel.tsx
+| Phase | Expected Time |
+|-------|---------------|
+| Context | 200-500ms |
+| Translate | 3-8s (3 LLM calls) |
+| Score | 2-5s (1 LLM call) |
+| Full Pipeline | 5-15s total |
+
+
+---
+
+# MAC-RAG Integrated Translation Page
+
+## User Query for TODO: Create Integrated MAC-RAG Translation Page
+
+```
+Follow @kendo-translation/development_guideline.md : Create Integrated MAC-RAG Page
+
+OVERVIEW:
+The MAC-RAG library files are complete but NOT wired into the UI.
+Create a new integrated translation page at /translate/mac-rag/[id] that uses the 
+full 3-phase pipeline with all components connected.
+
+Step 0: Review Existing Components
+- Review @kendo-translation/docs/mac_rag_implementation_plan.md
+- Update docs/ai_docs/AI_LOG_user_understanding_20251231.md
+- Create docs/ai_docs/AI_MEMORY_short_term-MAC_RAG.md
+
+- lib/context/context-builder.ts, analyzers.ts, context-pairer.ts, gap-detector.ts
+- lib/retrieval/tm-search.ts, terminology.ts
+- lib/translation/multi-gen.ts
+- lib/quality/scorer.ts, routing.ts  
+- lib/agents/ja-en-agent.ts
+- lib/hooks/useMacRag.ts
+- app/api/translate/mac-rag/route.ts
+- components/translation/ContextBuilderPanel.tsx
+- components/translation/TranslationCandidates.tsx
+- components/translation/PostTranslationPanel.tsx
+- components/translation/QualityScoreDisplay.tsx
+
+Step 1: Create MAC-RAG Translation Page
+- Review @kendo-translation/docs/mac_rag_implementation_plan.md
+- Create: app/translate/mac-rag/[id]/page.tsx
+
+The page should have 3 PHASES shown in sequence:
+
+PHASE 1: Pre-Translation (Context Building)
+- Show source Japanese text from article
+- Use useMacRag hook to call buildContext()
+- Display ContextBuilderPanel component with:
+  * Domain/style detection results
+  * TM matches with checkboxes
+  * Terminology constraints
+  * Coverage gaps detected
+  * JA-EN analysis (subjects, keigo level)
+- "Start Translation" button to proceed
+- Update docs/ai_docs/AI_MEMORY_short_term-MAC_RAG.md
+
+PHASE 2: Translation (Multi-Candidate Generation)  
+- Call useMacRag translate() method
+- Display TranslationCandidates component with:
+  * 3 candidates (literal, natural, formal)
+  * Confidence scores for each
+  * Radio selection for preferred
+  * Edit capability
+- "Accept & Continue" button to proceed
+- Update docs/ai_docs/AI_MEMORY_short_term-MAC_RAG.md
+
+PHASE 3: Post-Translation (Quality & Save)
+- Call useMacRag score() method
+- Display PostTranslationPanel component with:
+  * Quality scores (fluency, adequacy, terminology, style)
+  * Routing recommendation badge
+  * Save to TM checkbox
+  * New terms detected with save options
+  * Context feedback for TM matches used
+- "Save & Finish" button to complete
+- Update docs/ai_docs/AI_MEMORY_short_term-MAC_RAG.md
+
+Step 2: Wire All Components Together
+- Review @kendo-translation/docs/mac_rag_implementation_plan.md
+- Import useMacRag hook
+- Import all 4 translation components
+- Manage phase state (context → translate → score)
+- Pass data between phases via hook state
+- Handle loading states for each phase
+- Show progress indicator
+- Update docs/ai_docs/AI_MEMORY_short_term-MAC_RAG.md
+
+Step 3: Add Navigation Link
+
+- Add "🔬 MAC-RAG" link in RoleBasedNavigation.tsx for translator/admin
+- Update translate page to include link to MAC-RAG version
+- Update docs/ai_docs/AI_MEMORY_short_term-MAC_RAG.md
+
+Step 4: Update Styling
+- Use existing solarized theme variables
+- Show clear phase progression (stepper or tabs)
+- Loading spinners during API calls
+- Error handling with retry options
+- Update docs/ai_docs/AI_MEMORY_short_term-MAC_RAG.md
+
+Step 5: Browser Test
+- Review @kendo-translation/docs/mac_rag_implementation_plan.md
+- Login as translator
+- Navigate to /translate/mac-rag/[article-id]
+- Test Phase 1: Verify context building shows domain=kendo
+- Test Phase 2: Verify 3 candidates generated
+- Test Phase 3: Verify quality scores display
+- Complete full workflow: Save translation
+- Update docs/ai_docs/AI_MEMORY_short_term-MAC_RAG.md
+```
+
+## File Structure
+
+```
+app/translate/mac-rag/[id]/
+  └── page.tsx              # Main integrated page (NEW)
+
+components/translation/
+  ├── ContextBuilderPanel.tsx    # Phase 1 ✅ EXISTS
+  ├── TranslationCandidates.tsx  # Phase 2 ✅ EXISTS  
+  ├── PostTranslationPanel.tsx   # Phase 3 ✅ EXISTS
+  └── QualityScoreDisplay.tsx    # Utility ✅ EXISTS
+
+lib/hooks/
+  └── useMacRag.ts          # State management ✅ EXISTS
+```
+
+## Expected Workflow
+
+```
+┌─────────────┐     ┌──────────────┐     ┌───────────────┐
+│   PHASE 1   │  →  │   PHASE 2    │  →  │    PHASE 3    │
+│   Context   │     │  Translation │     │  Quality/Save │
+├─────────────┤     ├──────────────┤     ├───────────────┤
+│ • Domain    │     │ • Literal    │     │ • Scores      │
+│ • TM Match  │     │ • Natural    │     │ • Routing     │
+│ • Terms     │     │ • Formal     │     │ • TM Save     │
+│ • JA-EN     │     │ • Selection  │     │ • New Terms   │
+└─────────────┘     └──────────────┘     └───────────────┘
+```
