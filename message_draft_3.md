@@ -338,3 +338,119 @@ lib/hooks/
 │ • JA-EN     │     │ • Selection  │     │ • New Terms   │
 └─────────────┘     └──────────────┘     └───────────────┘
 ```
+
+---
+
+# MAC-RAG Human-Like Browser Test
+
+## User Query for TODO: MAC-RAG Complete Browser Test
+
+```
+Follow @kendo-translation/browser_testing_guideline.md : MAC-RAG Complete Browser Test
+
+IMPORTANT: Act like a human user. Stay in the same browser tab. Navigate via clicks, not URLs.
+
+Step 0: Session Setup
+- Read @kendo-translation/browser_testing_guideline.md first
+- Navigate to http://localhost:3000 (root)
+- Observe the landing page, read the content
+- Screenshot the initial state
+- Click "Login" link in the navigation (don't type URL)
+- Login as translator: translator-1@test.com / !12345678!
+- Wait 3 seconds for redirect
+- Screenshot the dashboard after login
+- Verify you see "translator-1" and "Logout" in header
+
+Step 1: Navigate to MAC-RAG (via clicks, not URLs)
+- Look for "🔬 MAC-RAG" in the navigation bar
+- Click on it
+- Wait 3 seconds for page load
+- Read the queue page content
+- Screenshot the MAC-RAG queue page
+- Verify you see a list of articles with "Translate →" buttons
+
+Step 2: Phase 1 - Context Building
+- Click "Translate →" on the first article with Japanese content
+- Wait 5 seconds for page and context to load
+- Observe the 3-phase indicator at top (1 Context, 2 Translate, 3 Quality)
+- Read the "Source Text (Japanese)" panel - verify it shows Japanese
+- Screenshot the source text panel
+- Look at the Context Builder panel:
+  * What domain was detected?
+  * What style was detected?
+  * Any entities found?
+- Screenshot the full Phase 1 state
+- Click "→ Start Translation" button
+
+Step 3: Phase 2 - Translation Candidates
+- Wait 8-15 seconds for LLM to generate translations
+- Observe the loading state
+- When candidates appear, read all 3 options:
+  * Literal approach - what does it say?
+  * Natural approach - what does it say?
+  * Formal approach - what does it say?
+- Screenshot the 3 candidates with confidence scores
+- Select the "Natural" approach by clicking its radio button
+- Screenshot after selection
+- Click "Accept & Continue" button
+
+Step 4: Phase 3 - Quality & Save
+- Wait 5-10 seconds for quality scoring
+- Observe the quality scores:
+  * Fluency score
+  * Adequacy score
+  * Terminology score
+  * Style score
+- What is the routing recommendation? (auto_accept/light_pe/standard_pe)
+- Screenshot the quality assessment
+- Toggle "Save to Translation Memory" checkbox if visible
+- Click "Save & Finish" button
+- Wait for save confirmation
+
+Step 5: Completion & Verification
+- Observe the completion message
+- Screenshot the "Translation Complete" panel
+- Click "View Article" to see the saved translation
+- Verify the English translation is displayed
+- Screenshot the article with translation
+- Click "Back to Queue" or navigate via nav
+
+Step 6: Session Cleanup
+- From wherever you are, click on "Logout" in the header
+- Wait for redirect to login page
+- Screenshot the logged-out state
+- Compile final test report
+
+Step 7: Document Results
+- Update docs/ai_docs/AI_MEMORY_short_term-MAC_RAG.md with findings
+- Create a test summary showing:
+  * All phases completed (✅/❌)
+  * Screenshots captured
+  * Any issues found
+```
+
+## Expected Observations
+
+| Phase | Expected Content |
+|-------|------------------|
+| Queue | Article list with translate buttons |
+| Phase 1 | Japanese source text, domain detection, entities |
+| Phase 2 | 3 candidates with different styles |
+| Phase 3 | Quality scores 0-100%, routing badge |
+| Complete | Success message, view/queue links |
+
+## Human Timing Guide
+
+| Action | Wait Time |
+|--------|-----------|
+| Page navigation | 3 seconds |
+| Context building | 5 seconds |
+| Translation generation | 10-15 seconds |
+| Quality scoring | 5-10 seconds |
+| Save operation | 3 seconds |
+
+## Test Credentials
+
+| Role | Email | Password |
+|------|-------|----------|
+| Translator | translator-1@test.com | !12345678! |
