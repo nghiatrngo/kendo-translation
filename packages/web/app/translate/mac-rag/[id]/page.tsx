@@ -44,6 +44,9 @@ export default function MacRagTranslatePage() {
     // Tab state for Agent Config / Logs panel
     const [activeTab, setActiveTab] = useState<'config' | 'logs'>('config');
 
+    // Context panel visibility
+    const [showContextPanel, setShowContextPanel] = useState(true);
+
     // MAC-RAG hook
     const macRag = useMacRag();
 
@@ -334,20 +337,34 @@ export default function MacRagTranslatePage() {
                 <div className="subtitle">{article.title}</div>
             </div>
 
-            {/* Phase Indicator */}
+            {/* Phase Indicator - Clickable for navigation */}
             <div className="phase-indicator">
-                <div className={`phase-step ${currentPhase === 'context' ? 'active' : currentPhase !== 'loading' ? 'completed' : ''}`}>
+                <button
+                    className={`phase-step ${currentPhase === 'context' ? 'active' : currentPhase !== 'loading' ? 'completed' : ''}`}
+                    onClick={() => currentPhase !== 'loading' && setCurrentPhase('context')}
+                    style={{ cursor: currentPhase !== 'loading' ? 'pointer' : 'default', border: 'none' }}
+                >
                     <span className="number">1</span>
                     Context
-                </div>
-                <div className={`phase-step ${currentPhase === 'translate' ? 'active' : ['quality', 'complete'].includes(currentPhase) ? 'completed' : ''}`}>
+                </button>
+                <button
+                    className={`phase-step ${currentPhase === 'translate' ? 'active' : ['quality', 'complete'].includes(currentPhase) ? 'completed' : ''}`}
+                    onClick={() => ['translate', 'quality', 'complete'].includes(currentPhase) && setCurrentPhase('translate')}
+                    style={{ cursor: ['translate', 'quality', 'complete'].includes(currentPhase) ? 'pointer' : 'default', border: 'none' }}
+                    disabled={currentPhase === 'context' || currentPhase === 'loading'}
+                >
                     <span className="number">2</span>
                     Translate
-                </div>
-                <div className={`phase-step ${currentPhase === 'quality' ? 'active' : currentPhase === 'complete' ? 'completed' : ''}`}>
+                </button>
+                <button
+                    className={`phase-step ${currentPhase === 'quality' ? 'active' : currentPhase === 'complete' ? 'completed' : ''}`}
+                    onClick={() => ['quality', 'complete'].includes(currentPhase) && setCurrentPhase('quality')}
+                    style={{ cursor: ['quality', 'complete'].includes(currentPhase) ? 'pointer' : 'default', border: 'none' }}
+                    disabled={!['quality', 'complete'].includes(currentPhase)}
+                >
                     <span className="number">3</span>
                     Quality
-                </div>
+                </button>
             </div>
 
             {/* Source Text Panel */}
@@ -396,18 +413,92 @@ export default function MacRagTranslatePage() {
 
                 {/* PHASE 2: Translation Candidates */}
                 {currentPhase === 'translate' && (
-                    <TranslationCandidates
-                        sourceText={article.content_ja || ''}
-                        sourceLang="ja"
-                        candidates={macRag.candidates.map((c, i) => ({
-                            ...c,
-                            isRecommended: i === macRag.recommendedIndex,
-                        }))}
-                        onSelect={(candidate) => macRag.selectCandidate(candidate.id)}
-                        onAccept={handleAcceptCandidate}
-                        onRegenerate={() => macRag.translate()}
-                        isLoading={macRag.isLoading}
-                    />
+                    <>
+                        {/* Collapsible Context Summary */}
+                        {macRag.context && (
+                            <div style={{
+                                marginBottom: 16,
+                                background: 'var(--bg-secondary, #eee8d5)',
+                                border: '1px solid var(--border-color, #93a1a1)',
+                                borderRadius: 8,
+                                overflow: 'hidden'
+                            }}>
+                                <button
+                                    onClick={() => setShowContextPanel(!showContextPanel)}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 16px',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        fontSize: 14,
+                                        fontWeight: 500,
+                                        color: 'var(--text-primary, #073642)'
+                                    }}
+                                >
+                                    <span>📋 Context Summary</span>
+                                    <span>{showContextPanel ? '▼' : '▶'}</span>
+                                </button>
+                                {showContextPanel && (
+                                    <div style={{ padding: '0 16px 16px', fontSize: 13 }}>
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                                            <div>
+                                                <strong style={{ color: 'var(--text-secondary)' }}>Domain:</strong>{' '}
+                                                {macRag.context.domain.primary} ({Math.round(macRag.context.domain.confidence * 100)}%)
+                                            </div>
+                                            <div>
+                                                <strong style={{ color: 'var(--text-secondary)' }}>Style:</strong>{' '}
+                                                {macRag.context.style.formality}, {macRag.context.style.tone}
+                                            </div>
+                                            {macRag.terminology && macRag.terminology.requiredTerms.length > 0 && (
+                                                <div style={{ gridColumn: '1 / -1' }}>
+                                                    <strong style={{ color: 'var(--text-secondary)' }}>Terminology:</strong>{' '}
+                                                    {macRag.terminology.requiredTerms.slice(0, 5).map(t => `${t.japaneseTerm}→${t.englishTerm}`).join(', ')}
+                                                    {macRag.terminology.requiredTerms.length > 5 && ` +${macRag.terminology.requiredTerms.length - 5} more`}
+                                                </div>
+                                            )}
+                                            {macRag.jaAnalysis && (
+                                                <div style={{ gridColumn: '1 / -1' }}>
+                                                    <strong style={{ color: 'var(--text-secondary)' }}>Keigo:</strong>{' '}
+                                                    {macRag.jaAnalysis.honorifics?.level || 'N/A'} → {macRag.jaAnalysis.honorifics?.targetRegister || 'N/A'}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={() => setCurrentPhase('context')}
+                                            style={{
+                                                marginTop: 12,
+                                                padding: '6px 12px',
+                                                fontSize: 12,
+                                                background: 'var(--accent, #268bd2)',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: 4,
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            ← Edit Context
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        <TranslationCandidates
+                            sourceText={article.content_ja || ''}
+                            sourceLang="ja"
+                            candidates={macRag.candidates.map((c, i) => ({
+                                ...c,
+                                isRecommended: i === macRag.recommendedIndex,
+                            }))}
+                            onSelect={(candidate) => macRag.selectCandidate(candidate.id)}
+                            onAccept={handleAcceptCandidate}
+                            onRegenerate={() => macRag.translate()}
+                            isLoading={macRag.isLoading}
+                        />
+                    </>
                 )}
 
                 {/* PHASE 3: Quality & Save */}

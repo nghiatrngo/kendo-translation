@@ -25,30 +25,19 @@ interface ConfigResponse {
     }
 }
 
-const AGENT_LABELS: Record<string, string> = {
-    translation: '🔄 Translation',
-    analysis: '🔍 Analysis',
-    reflection: '🪞 Reflection',
-    ja_en_specialist: '🇯🇵 JA-EN Specialist',
-}
-
-const AGENT_DESCRIPTIONS: Record<string, string> = {
-    translation: 'Performs core JA→EN translation',
-    analysis: 'Analyzes source text complexity',
-    reflection: 'Reviews translation quality',
-    ja_en_specialist: 'Handles Japanese linguistic features',
-}
-
 const LOCAL_STORAGE_KEY = 'kendo-translation-agent-config'
 
 export default function AgentConfigPanel() {
     const [config, setConfig] = useState<ConfigResponse | null>(null)
-    const [editedConfigs, setEditedConfigs] = useState<AgentConfig[]>([])
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
-    const [hasChanges, setHasChanges] = useState(false)
+
+    // Text editor state
+    const [isEditing, setIsEditing] = useState(false)
+    const [editText, setEditText] = useState('')
+    const [parseError, setParseError] = useState<string | null>(null)
 
     useEffect(() => {
         const fetchConfig = async () => {
@@ -74,7 +63,6 @@ export default function AgentConfigPanel() {
                 }
 
                 setConfig(data)
-                setEditedConfigs(data.configs.map(c => ({ ...c })))
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Unknown error')
             } finally {
@@ -84,18 +72,44 @@ export default function AgentConfigPanel() {
         fetchConfig()
     }, [])
 
-    const handleModelChange = (agentType: string, model: string) => {
-        const modelInfo = config?.availableModels.find(m => m.id === model)
-        setEditedConfigs(prev => prev.map(c =>
-            c.agentType === agentType
-                ? { ...c, model, provider: modelInfo?.provider || 'openrouter' }
-                : c
-        ))
-        setHasChanges(true)
-        setMessage(null)
+    const handleStartEdit = () => {
+        if (config) {
+            // Format config for editing
+            const editableConfig = config.configs.map(c => ({
+                agentType: c.agentType,
+                model: c.model,
+                provider: c.provider
+            }))
+            setEditText(JSON.stringify(editableConfig, null, 2))
+            setParseError(null)
+            setIsEditing(true)
+        }
+    }
+
+    const handleCancelEdit = () => {
+        setIsEditing(false)
+        setEditText('')
+        setParseError(null)
     }
 
     const handleSave = async () => {
+        // Validate JSON
+        let parsed: AgentConfig[]
+        try {
+            parsed = JSON.parse(editText)
+            if (!Array.isArray(parsed)) {
+                throw new Error('Config must be an array')
+            }
+            for (const item of parsed) {
+                if (!item.agentType || !item.model) {
+                    throw new Error('Each config must have agentType and model')
+                }
+            }
+        } catch (err) {
+            setParseError(err instanceof Error ? err.message : 'Invalid JSON')
+            return
+        }
+
         setSaving(true)
         setMessage(null)
 
@@ -104,7 +118,7 @@ export default function AgentConfigPanel() {
             const response = await fetch('/api/agent/config', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ configs: editedConfigs }),
+                body: JSON.stringify({ configs: parsed }),
             })
 
             if (!response.ok) {
@@ -113,14 +127,14 @@ export default function AgentConfigPanel() {
             }
 
             // Save to localStorage
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(editedConfigs))
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsed))
 
             // Update displayed config
             if (config) {
-                setConfig({ ...config, configs: editedConfigs })
+                setConfig({ ...config, configs: parsed })
             }
 
-            setHasChanges(false)
+            setIsEditing(false)
             setMessage({ type: 'success', text: 'Configuration saved! Changes apply to new translations.' })
         } catch (err) {
             setMessage({
@@ -135,12 +149,12 @@ export default function AgentConfigPanel() {
     const handleReset = () => {
         if (config) {
             localStorage.removeItem(LOCAL_STORAGE_KEY)
-            setEditedConfigs(config.configs.map(c => ({
+            const resetConfigs = config.configs.map(c => ({
                 ...c,
                 model: config.defaultModel
-            })))
-            setHasChanges(true)
-            setMessage({ type: 'success', text: 'Reset to default. Click Save to apply.' })
+            }))
+            setConfig({ ...config, configs: resetConfigs })
+            setMessage({ type: 'success', text: 'Reset to default configuration.' })
         }
     }
 
@@ -171,94 +185,103 @@ export default function AgentConfigPanel() {
                     <span className="text-xs text-gray-500">
                         Provider: <span className="font-medium">{config.defaultProvider}</span>
                     </span>
-                    {hasChanges && (
-                        <span className="text-xs px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded">
-                            Unsaved
-                        </span>
-                    )}
                 </div>
             </div>
 
             {/* Message */}
             {message && (
                 <div className={`p-2 rounded text-sm ${message.type === 'success'
-                        ? 'bg-green-50 text-green-700 border border-green-200'
-                        : 'bg-red-50 text-red-700 border border-red-200'
+                    ? 'bg-green-50 text-green-700 border border-green-200'
+                    : 'bg-red-50 text-red-700 border border-red-200'
                     }`}>
                     {message.text}
                 </div>
             )}
 
-            {/* Agent Cards */}
-            <div className="grid gap-3">
-                {editedConfigs.map((agent) => (
-                    <div
-                        key={agent.agentType}
-                        className="bg-white border border-gray-200 rounded-lg p-3"
-                    >
-                        <div className="flex items-center justify-between mb-1">
-                            <span className="font-medium text-gray-700">
-                                {AGENT_LABELS[agent.agentType] || agent.agentType}
-                            </span>
-                            <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded">
-                                {agent.provider}
-                            </span>
-                        </div>
-                        <div className="text-xs text-gray-500 mb-2">
-                            {AGENT_DESCRIPTIONS[agent.agentType]}
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <label className="text-xs text-gray-600">Model:</label>
-                            <select
-                                value={agent.model}
-                                onChange={(e) => handleModelChange(agent.agentType, e.target.value)}
-                                className="flex-1 text-xs bg-gray-50 border border-gray-200 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            >
-                                {config.availableModels.map((model) => (
-                                    <option key={model.id} value={model.id}>
-                                        {model.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+            {isEditing ? (
+                /* Text Editor Mode */
+                <div className="space-y-3">
+                    <div className="text-xs text-gray-500">
+                        Edit the JSON configuration below. Each agent needs <code>agentType</code> and <code>model</code>.
                     </div>
-                ))}
-            </div>
-
-            {/* Settings (read-only) */}
-            <div className="bg-gray-50 rounded-lg p-3 text-sm">
-                <div className="font-medium text-gray-700 mb-2">Default Settings</div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                        <span className="text-gray-500">Temperature:</span>{' '}
-                        <span className="text-gray-800">{config.settings.temperature}</span>
+                    <textarea
+                        value={editText}
+                        onChange={(e) => {
+                            setEditText(e.target.value)
+                            setParseError(null)
+                        }}
+                        className="w-full h-64 font-mono text-xs bg-gray-50 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        spellCheck={false}
+                    />
+                    {parseError && (
+                        <div className="text-xs text-red-600 bg-red-50 p-2 rounded border border-red-200">
+                            ❌ {parseError}
+                        </div>
+                    )}
+                    <div className="text-xs text-gray-500">
+                        Available models: {config.availableModels.map(m => m.id).join(', ')}
                     </div>
-                    <div>
-                        <span className="text-gray-500">Max Tokens:</span>{' '}
-                        <span className="text-gray-800">{config.settings.maxTokens}</span>
+                    <div className="flex gap-2 justify-end">
+                        <button
+                            onClick={handleCancelEdit}
+                            className="px-3 py-1.5 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            disabled={saving}
+                            className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-400"
+                        >
+                            {saving ? 'Saving...' : '💾 Save Changes'}
+                        </button>
                     </div>
                 </div>
-            </div>
+            ) : (
+                /* View Mode */
+                <>
+                    {/* Current Config Display */}
+                    <div className="bg-gray-50 rounded-lg p-3 font-mono text-xs overflow-x-auto">
+                        <pre className="whitespace-pre-wrap">
+                            {JSON.stringify(config.configs.map(c => ({
+                                agentType: c.agentType,
+                                model: c.model
+                            })), null, 2)}
+                        </pre>
+                    </div>
 
-            {/* Actions */}
-            <div className="flex gap-2 justify-end">
-                <button
-                    onClick={handleReset}
-                    className="px-3 py-1.5 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded"
-                >
-                    Reset to Default
-                </button>
-                <button
-                    onClick={handleSave}
-                    disabled={!hasChanges || saving}
-                    className={`px-3 py-1.5 text-xs rounded ${hasChanges && !saving
-                            ? 'bg-blue-600 text-white hover:bg-blue-700'
-                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                        }`}
-                >
-                    {saving ? 'Saving...' : 'Save Changes'}
-                </button>
-            </div>
+                    {/* Settings (read-only) */}
+                    <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                        <div className="font-medium text-gray-700 mb-2">Default Settings</div>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                                <span className="text-gray-500">Temperature:</span>{' '}
+                                <span className="text-gray-800">{config.settings.temperature}</span>
+                            </div>
+                            <div>
+                                <span className="text-gray-500">Max Tokens:</span>{' '}
+                                <span className="text-gray-800">{config.settings.maxTokens}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-2 justify-end">
+                        <button
+                            onClick={handleReset}
+                            className="px-3 py-1.5 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded"
+                        >
+                            Reset to Default
+                        </button>
+                        <button
+                            onClick={handleStartEdit}
+                            className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
+                        >
+                            ✏️ Edit Configuration
+                        </button>
+                    </div>
+                </>
+            )}
         </div>
     )
 }
