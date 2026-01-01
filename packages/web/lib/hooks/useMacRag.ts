@@ -3,7 +3,7 @@
  * Provides easy access to the MAC-RAG translation pipeline from React components
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 // === TYPES ===
 
@@ -350,7 +350,7 @@ export function useMacRag() {
         }
     }, []);
 
-    return {
+    return useMemo(() => ({
         ...state,
         reset,
         buildContext,
@@ -359,7 +359,16 @@ export function useMacRag() {
         toggleTMMatch,
         score,
         runFullPipeline,
-    };
+    }), [
+        state,
+        reset,
+        buildContext,
+        translate,
+        selectCandidate,
+        toggleTMMatch,
+        score,
+        runFullPipeline
+    ]);
 }
 
 export default useMacRag;

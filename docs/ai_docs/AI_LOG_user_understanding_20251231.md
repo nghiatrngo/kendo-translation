@@ -1,24 +1,27 @@
 # AI User Understanding Log - December 31, 2025
 
-## Task: Implement Role-Specific Views
+## Task: MAC-RAG Integrated Translation Page & Testing
 
 ### User Intent
-Implement role-based UI where:
-- **ADMIN**: Full access (all navigation + admin panel)
-- **TRANSLATOR**: Translation features (no admin panel)
-- **READER**: Read-only (no translate, no admin)
+Integrate the previously built MAC-RAG components into a cohesive 3-phase UI:
+1. **Context Building**: Pre-translation analysis and retrieval.
+2. **Translation**: Multi-candidate generation.
+3. **Quality & Save**: Scoring and memory updates.
+
+Then verify the entire flow with a comprehensive browser test.
 
 ### Current State Analysis  
-1. **AuthHeader.tsx**: Has role badges, Admin link for admins only ✅
-2. **layout.tsx**: Shows ALL nav links to everyone ❌ (needs role filtering)
-3. **middleware.ts**: Only checks auth, no role-based protection ❌
-4. **Test Users**: admin-1, translator-1, reader-1 @test.com (password: !12345678!)
+1. **Library Files**: All core logic (Layer 1-4) is implemented.
+2. **Integrated Page**: `app/translate/mac-rag/[id]/page.tsx` is created.
+3. **Queue Page**: `app/translate/mac-rag/page.tsx` is created.
+4. **Navigation**: Link added to `RoleBasedNavigation.tsx`.
 
-### Implementation Plan
-1. Create RoleBasedNavigation component that fetches role and conditionally renders links
-2. Update middleware.ts to check roles for /admin/* and /translate/* routes
-3. Update article detail page to show/hide translate button based on role
-4. Test all three roles through complete user flows
+### Verification Plan
+1. Login as translator.
+2. Navigate to MAC-RAG queue.
+3. Select an article.
+4. Verify all 3 phases (Context, Translate, Quality).
+5. Confirm "Save" functionality.
 
 ### Workflow
-- Execute: NEW (RoleBasedNavigation) + REVISE (middleware, layout)
+- Execute: Verify existing code, then run Browser Test.

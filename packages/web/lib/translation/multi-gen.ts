@@ -3,7 +3,7 @@
  * Layer 3: Generate multiple translation candidates with different approaches
  */
 
-import { callLLM } from '@/lib/llm/provider';
+import { agentChat } from '@/lib/llm/provider';
 import type { ContextObject } from '@/lib/context/context-builder';
 import type { TerminologyConstraints } from '@/lib/retrieval/terminology';
 import type { TMMatch } from '@/lib/retrieval/tm-search';
@@ -111,23 +111,36 @@ Translate the following ${context.sourceLang.toUpperCase()} text to ${context.ta
 
 ${sourceText}
 
-Provide ONLY the translation, no explanations.`;
+CRITICAL INSTRUCTIONS:
+- OUTPUT ONLY the translated text.
+- Do NOT include "Here is the translation", "Sure", or any other conversational filler.
+- Do NOT wrap the output in quotes unless the original text has quotes.
+- Do NOT provide alternative options or explanations.
+- Return PURE text only.`;
 
     try {
-        const response = await callLLM({
-            messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt },
-            ],
+        const response = await agentChat('translation', [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
+        ], {
             temperature: approach === 'literal' ? 0.3 : approach === 'formal' ? 0.4 : 0.5,
         });
 
+        // Clean response content
+        let cleanText = response.content.trim();
+        // Remove common chat prefixes
+        cleanText = cleanText.replace(/^(Here is|Sure,|Okay,|Here's) .*?:\s*/i, '');
+        // Remove surrounding quotes if they wrap the entire text
+        if (cleanText.startsWith('"') && cleanText.endsWith('"') && sourceText.trim().charAt(0) !== '"') {
+            cleanText = cleanText.slice(1, -1);
+        }
+
         // Extract confidence from response if available, otherwise estimate
-        const confidence = estimateConfidence(response.content, context, terminology);
+        const confidence = estimateConfidence(cleanText, context, terminology);
 
         return {
             id: `${approach}-${Date.now()}`,
-            text: response.content.trim(),
+            text: cleanText,
             approach,
             confidence,
             processingTime: Date.now() - startTime,

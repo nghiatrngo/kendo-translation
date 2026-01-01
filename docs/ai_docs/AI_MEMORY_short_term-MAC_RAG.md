@@ -2,6 +2,7 @@
 
 ## Current Status
 ✅ Implementation Complete
+🔄 Verification Pending
 
 ## Files Created
 - `app/translate/mac-rag/page.tsx` - Article queue for MAC-RAG
@@ -18,3 +19,11 @@
 - ContextBuilderPanel → Phase 1
 - TranslationCandidates → Phase 2
 - PostTranslationPanel → Phase 3
+
+## Verification Checklist
+- [ ] Login as Translator
+- [ ] Navigation to MAC-RAG
+- [ ] Queue Page load
+- [ ] Phase 1: Context Generation
+- [ ] Phase 2: Candidate Generation
+- [ ] Phase 3: Quality Scoring & Save

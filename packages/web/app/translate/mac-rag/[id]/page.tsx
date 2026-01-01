@@ -49,6 +49,7 @@ export default function MacRagTranslatePage() {
                 const response = await fetch(`/api/articles/${articleId}`);
                 if (!response.ok) throw new Error('Article not found');
                 const data = await response.json();
+
                 // API returns { article: {...} } so extract it
                 const articleData = data.article || data;
                 setArticle(articleData);
@@ -67,7 +68,7 @@ export default function MacRagTranslatePage() {
 
     // Phase 1: Build context when entering context phase
     useEffect(() => {
-        if (currentPhase === 'context' && article?.content_ja && !macRag.context) {
+        if (currentPhase === 'context' && article?.content_ja && !macRag.context && !macRag.isLoading) {
             macRag.buildContext(article.content_ja, {
                 sourceLang: 'ja',
                 targetLang: 'en',
@@ -93,8 +94,8 @@ export default function MacRagTranslatePage() {
 
         try {
             // Save translation to article
-            await fetch(`/api/articles/${articleId}/translate`, {
-                method: 'POST',
+            const response = await fetch(`/api/articles/${articleId}/translate`, {
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     content_en: macRag.selectedCandidate.text,
@@ -102,6 +103,11 @@ export default function MacRagTranslatePage() {
                     quality_score: macRag.qualityAssessment?.scores.overall,
                 }),
             });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Failed to save translation');
+            }
 
             // Save to TM if requested
             await fetch('/api/post/save', {
@@ -405,7 +411,7 @@ export default function MacRagTranslatePage() {
                         sourceText={article.content_ja || ''}
                         translation={macRag.selectedCandidate.text}
                         scores={macRag.qualityAssessment?.scores}
-                        issues={macRag.qualityAssessment?.issues}
+                        issues={macRag.qualityAssessment?.issues as any}
                         routing={macRag.routing?.decision as 'auto_accept' | 'light_pe' | 'standard_pe' | 'full_revision'}
                         onSave={handleSave}
                         onSkip={handleSkip}

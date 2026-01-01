@@ -146,6 +146,8 @@ export async function searchTerminology(
 
     for (const term of termMap.values()) {
         const searchTerm = sourceLang === 'ja' ? term.japaneseTerm : term.englishTerm;
+        if (!searchTerm) continue;
+
         if (text.includes(searchTerm) || searchText.includes(searchTerm.toLowerCase())) {
             foundTerms.push(term);
         }

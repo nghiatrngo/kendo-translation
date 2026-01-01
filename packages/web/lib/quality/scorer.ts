@@ -3,7 +3,7 @@
  * Phase 4: LLM-assisted quality assessment for translations
  */
 
-import { callLLM } from '@/lib/llm/provider';
+import { agentChat } from '@/lib/llm/provider';
 
 export interface QualityScores {
     overall: number;
@@ -113,8 +113,9 @@ export async function scoreTranslation(options: ScoringOptions): Promise<Quality
 
     try {
         // Call LLM for scoring
-        const response = await callLLM({
-            messages: [{ role: 'user', content: prompt }],
+        const response = await agentChat('reflection', [
+            { role: 'user', content: prompt }
+        ], {
             temperature: 0.2, // Low temperature for consistent scoring
         });
 
