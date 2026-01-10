@@ -29,40 +29,68 @@ const LOCAL_STORAGE_KEY = 'kendo-translation-agent-config'
 
 export default function AgentConfigPanel() {
     const [config, setConfig] = useState<ConfigResponse | null>(null)
+    const [defaultPrompts, setDefaultPrompts] = useState<Record<string, string>>({})
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+
+    // UI State
+    const [activeTab, setActiveTab] = useState<'models' | 'translation' | 'quality'>('models')
+    const [activeSubTab, setActiveSubTab] = useState<string>('literal') // for translation approaches
 
     // Text editor state
     const [isEditing, setIsEditing] = useState(false)
     const [editText, setEditText] = useState('')
     const [parseError, setParseError] = useState<string | null>(null)
 
+    // Prompt editor state (keyed by "agentType:approach")
+    const [promptEdits, setPromptEdits] = useState<Record<string, string>>({})
+
     useEffect(() => {
         const fetchConfig = async () => {
             try {
                 const response = await fetch('/api/agent/config')
                 if (!response.ok) throw new Error('Failed to load config')
-                const data: ConfigResponse = await response.json()
+                const data: any = await response.json()
 
-                // Check for saved config in localStorage
+                // Check for saved config in localStorage (Models only)
                 const savedConfig = localStorage.getItem(LOCAL_STORAGE_KEY)
                 if (savedConfig) {
                     try {
                         const parsed = JSON.parse(savedConfig)
-                        // Merge saved models with server config
-                        const mergedConfigs = data.configs.map(serverConfig => {
+                        const mergedConfigs = data.configs.map((serverConfig: AgentConfig) => {
                             const saved = parsed.find((s: AgentConfig) => s.agentType === serverConfig.agentType)
                             return saved ? { ...serverConfig, model: saved.model } : serverConfig
                         })
                         data.configs = mergedConfigs
-                    } catch {
-                        // Ignore invalid localStorage data
-                    }
+                    } catch { }
                 }
 
+                // Initialize prompts
+                if (!data.prompts) data.prompts = [];
+
                 setConfig(data)
+                setDefaultPrompts(data.defaultPrompts || {})
+
+                // Initialize prompt edits with current values or defaults
+                const edits: Record<string, string> = {}
+
+                // Helper to set edit
+                const setEdit = (key: string, val: string) => { edits[key] = val }
+
+                // Translation
+                ['literal', 'natural', 'formal'].forEach(approach => {
+                    const custom = data.prompts.find((p: any) => p.agentType === 'translation' && p.approach === approach)
+                    setEdit(`translation:${approach}`, custom?.template || data.defaultPrompts[`translation:${approach}`] || '')
+                })
+
+                // Quality
+                const customQuality = data.prompts.find((p: any) => p.agentType === 'reflection' && (!p.approach || p.approach === 'quality'))
+                setEdit('reflection:quality', customQuality?.template || data.defaultPrompts['reflection:quality'] || '')
+
+                setPromptEdits(edits)
+
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'Unknown error')
             } finally {
@@ -72,39 +100,23 @@ export default function AgentConfigPanel() {
         fetchConfig()
     }, [])
 
-    const handleStartEdit = () => {
-        if (config) {
-            // Format config for editing
-            const editableConfig = config.configs.map(c => ({
-                agentType: c.agentType,
-                model: c.model,
-                provider: c.provider
-            }))
-            setEditText(JSON.stringify(editableConfig, null, 2))
-            setParseError(null)
-            setIsEditing(true)
-        }
-    }
-
-    const handleCancelEdit = () => {
-        setIsEditing(false)
-        setEditText('')
+    const handleStartEditModels = () => {
+        if (!config) return;
+        const editableConfig = config.configs.map(c => ({
+            agentType: c.agentType,
+            model: c.model,
+            provider: c.provider
+        }))
+        setEditText(JSON.stringify(editableConfig, null, 2))
         setParseError(null)
+        setIsEditing(true)
     }
 
-    const handleSave = async () => {
-        // Validate JSON
-        let parsed: AgentConfig[]
+    const handleSaveModels = async () => {
+        let parsed: any
         try {
             parsed = JSON.parse(editText)
-            if (!Array.isArray(parsed)) {
-                throw new Error('Config must be an array')
-            }
-            for (const item of parsed) {
-                if (!item.agentType || !item.model) {
-                    throw new Error('Each config must have agentType and model')
-                }
-            }
+            if (!Array.isArray(parsed)) throw new Error('Config must be an array')
         } catch (err) {
             setParseError(err instanceof Error ? err.message : 'Invalid JSON')
             return
@@ -114,66 +126,67 @@ export default function AgentConfigPanel() {
         setMessage(null)
 
         try {
-            // Validate with server
             const response = await fetch('/api/agent/config', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ configs: parsed }),
             })
 
-            if (!response.ok) {
-                const data = await response.json()
-                throw new Error(data.error || 'Failed to save')
-            }
+            if (!response.ok) throw new Error('Failed to save')
 
-            // Save to localStorage
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsed))
-
-            // Update displayed config
-            if (config) {
-                setConfig({ ...config, configs: parsed })
-            }
-
+            if (config) setConfig({ ...config, configs: parsed })
             setIsEditing(false)
-            setMessage({ type: 'success', text: 'Configuration saved! Changes apply to new translations.' })
+            setMessage({ type: 'success', text: 'Configuration saved!' })
         } catch (err) {
-            setMessage({
-                type: 'error',
-                text: err instanceof Error ? err.message : 'Failed to save'
-            })
+            setMessage({ type: 'error', text: 'Failed to save' })
         } finally {
             setSaving(false)
         }
     }
 
-    const handleReset = () => {
-        if (config) {
-            localStorage.removeItem(LOCAL_STORAGE_KEY)
-            const resetConfigs = config.configs.map(c => ({
-                ...c,
-                model: config.defaultModel
-            }))
-            setConfig({ ...config, configs: resetConfigs })
-            setMessage({ type: 'success', text: 'Reset to default configuration.' })
+    const handleSavePrompt = async (agentType: string, approach: string) => {
+        const key = approach === 'quality' ? 'reflection:quality' : `${agentType}:${approach}`;
+        const template = promptEdits[key];
+
+        setSaving(true)
+        setMessage(null)
+
+        try {
+            const payload = {
+                prompts: [{
+                    agentType,
+                    approach: approach === 'quality' ? undefined : approach, // quality usually doesn't need approach but we can store it or use null
+                    template
+                }]
+            }
+
+            const response = await fetch('/api/agent/config', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            })
+
+            if (!response.ok) throw new Error('Failed to save prompt')
+
+            setMessage({ type: 'success', text: 'Prompt saved!' })
+        } catch (err) {
+            setMessage({ type: 'error', text: 'Failed to save prompt' })
+        } finally {
+            setSaving(false)
         }
     }
 
-    if (loading) {
-        return (
-            <div className="p-4 text-center text-gray-500">
-                <span className="animate-pulse">Loading agent configuration...</span>
-            </div>
-        )
+    const handleResetPrompt = (key: string) => {
+        setPromptEdits(prev => ({
+            ...prev,
+            [key]: defaultPrompts[key] || ''
+        }))
+        setMessage({ type: 'success', text: 'Reset to default (unsaved). Click Save to apply.' })
     }
 
-    if (error) {
-        return (
-            <div className="p-4 bg-red-50 text-red-700 rounded-lg">
-                Error: {error}
-            </div>
-        )
-    }
-
+    if (loading) return <div className="p-4 text-center animate-pulse">Loading config...</div>
+    if (error) return <div className="p-4 bg-red-50 text-red-700 rounded">Error: {error}</div>
     if (!config) return null
 
     return (
@@ -181,106 +194,128 @@ export default function AgentConfigPanel() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <h3 className="font-medium text-gray-800">⚙️ Agent Configuration</h3>
-                <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500">
-                        Provider: <span className="font-medium">{config.defaultProvider}</span>
-                    </span>
+                <div className="flex bg-gray-200 rounded p-1 text-xs">
+                    <button
+                        className={`px-3 py-1 rounded ${activeTab === 'models' ? 'bg-white shadow text-blue-600 font-medium' : 'text-gray-600'}`}
+                        onClick={() => { setActiveTab('models'); setIsEditing(false); }}
+                    >
+                        Models
+                    </button>
+                    <button
+                        className={`px-3 py-1 rounded ${activeTab === 'translation' ? 'bg-white shadow text-blue-600 font-medium' : 'text-gray-600'}`}
+                        onClick={() => { setActiveTab('translation'); setIsEditing(false); }}
+                    >
+                        Translation Prompts
+                    </button>
+                    <button
+                        className={`px-3 py-1 rounded ${activeTab === 'quality' ? 'bg-white shadow text-blue-600 font-medium' : 'text-gray-600'}`}
+                        onClick={() => { setActiveTab('quality'); setIsEditing(false); }}
+                    >
+                        Quality Prompts
+                    </button>
                 </div>
             </div>
 
             {/* Message */}
             {message && (
-                <div className={`p-2 rounded text-sm ${message.type === 'success'
-                    ? 'bg-green-50 text-green-700 border border-green-200'
-                    : 'bg-red-50 text-red-700 border border-red-200'
-                    }`}>
+                <div className={`p-2 rounded text-sm ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
                     {message.text}
                 </div>
             )}
 
-            {isEditing ? (
-                /* Text Editor Mode */
-                <div className="space-y-3">
-                    <div className="text-xs text-gray-500">
-                        Edit the JSON configuration below. Each agent needs <code>agentType</code> and <code>model</code>.
-                    </div>
-                    <textarea
-                        value={editText}
-                        onChange={(e) => {
-                            setEditText(e.target.value)
-                            setParseError(null)
-                        }}
-                        className="w-full h-64 font-mono text-xs bg-gray-50 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        spellCheck={false}
-                    />
-                    {parseError && (
-                        <div className="text-xs text-red-600 bg-red-50 p-2 rounded border border-red-200">
-                            ❌ {parseError}
+            {/* MODELS TAB */}
+            {activeTab === 'models' && (
+                <div className="space-y-4">
+                    {isEditing ? (
+                        <div className="space-y-2">
+                            <textarea
+                                value={editText}
+                                onChange={(e) => setEditText(e.target.value)}
+                                className="w-full h-64 font-mono text-xs p-3 border rounded bg-gray-50"
+                            />
+                            {parseError && <div className="text-red-600 text-xs">{parseError}</div>}
+                            <div className="flex justify-end gap-2">
+                                <button onClick={() => setIsEditing(false)} className="px-3 py-1 text-xs border rounded">Cancel</button>
+                                <button onClick={handleSaveModels} disabled={saving} className="px-3 py-1 text-xs bg-blue-600 text-white rounded">Save</button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="bg-gray-50 rounded p-3 font-mono text-xs overflow-auto">
+                            <pre>{JSON.stringify(config.configs.map(c => ({ agentType: c.agentType, model: c.model })), null, 2)}</pre>
+                            <div className="mt-2 flex justify-end">
+                                <button onClick={handleStartEditModels} className="px-3 py-1 text-xs bg-blue-600 text-white rounded">Edit Models</button>
+                            </div>
                         </div>
                     )}
-                    <div className="text-xs text-gray-500">
-                        Available models: {config.availableModels.map(m => m.id).join(', ')}
+                </div>
+            )}
+
+            {/* TRANSLATION PROMPTS TAB */}
+            {activeTab === 'translation' && (
+                <div className="space-y-4">
+                    <div className="flex border-b text-xs">
+                        {['literal', 'natural', 'formal'].map(sub => (
+                            <button
+                                key={sub}
+                                className={`px-4 py-2 border-b-2 ${activeSubTab === sub ? 'border-blue-500 text-blue-600 font-medium' : 'border-transparent text-gray-500'}`}
+                                onClick={() => setActiveSubTab(sub)}
+                            >
+                                {sub.charAt(0).toUpperCase() + sub.slice(1)}
+                            </button>
+                        ))}
                     </div>
-                    <div className="flex gap-2 justify-end">
+
+                    <div className="space-y-2">
+                        <textarea
+                            value={promptEdits[`translation:${activeSubTab}`] || ''}
+                            onChange={(e) => setPromptEdits(prev => ({ ...prev, [`translation:${activeSubTab}`]: e.target.value }))}
+                            className="w-full h-80 p-3 border rounded text-xs leading-relaxed font-mono"
+                            placeholder="Enter prompt template..."
+                        />
+                        <div className="flex justify-between items-center">
+                            <button
+                                onClick={() => handleResetPrompt(`translation:${activeSubTab}`)}
+                                className="text-xs text-gray-500 hover:text-red-600"
+                            >
+                                ↺ Reset to Default
+                            </button>
+                            <button
+                                onClick={() => handleSavePrompt('translation', activeSubTab)}
+                                disabled={saving}
+                                className="px-4 py-2 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700"
+                            >
+                                {saving ? 'Saving...' : '💾 Save Prompt'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* QUALITY PROMPTS TAB */}
+            {activeTab === 'quality' && (
+                <div className="space-y-4">
+                    <p className="text-xs text-gray-500">Prompt used by the Quality/Reflection agent to score translations.</p>
+                    <textarea
+                        value={promptEdits['reflection:quality'] || ''}
+                        onChange={(e) => setPromptEdits(prev => ({ ...prev, 'reflection:quality': e.target.value }))}
+                        className="w-full h-80 p-3 border rounded text-xs leading-relaxed font-mono"
+                    />
+                    <div className="flex justify-between items-center">
                         <button
-                            onClick={handleCancelEdit}
-                            className="px-3 py-1.5 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded"
+                            onClick={() => handleResetPrompt('reflection:quality')}
+                            className="text-xs text-gray-500 hover:text-red-600"
                         >
-                            Cancel
+                            ↺ Reset to Default
                         </button>
                         <button
-                            onClick={handleSave}
+                            onClick={() => handleSavePrompt('reflection', 'quality')}
                             disabled={saving}
-                            className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-blue-400"
+                            className="px-4 py-2 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700"
                         >
-                            {saving ? 'Saving...' : '💾 Save Changes'}
+                            {saving ? 'Saving...' : '💾 Save Prompt'}
                         </button>
                     </div>
                 </div>
-            ) : (
-                /* View Mode */
-                <>
-                    {/* Current Config Display */}
-                    <div className="bg-gray-50 rounded-lg p-3 font-mono text-xs overflow-x-auto">
-                        <pre className="whitespace-pre-wrap">
-                            {JSON.stringify(config.configs.map(c => ({
-                                agentType: c.agentType,
-                                model: c.model
-                            })), null, 2)}
-                        </pre>
-                    </div>
-
-                    {/* Settings (read-only) */}
-                    <div className="bg-gray-50 rounded-lg p-3 text-sm">
-                        <div className="font-medium text-gray-700 mb-2">Default Settings</div>
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div>
-                                <span className="text-gray-500">Temperature:</span>{' '}
-                                <span className="text-gray-800">{config.settings.temperature}</span>
-                            </div>
-                            <div>
-                                <span className="text-gray-500">Max Tokens:</span>{' '}
-                                <span className="text-gray-800">{config.settings.maxTokens}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-2 justify-end">
-                        <button
-                            onClick={handleReset}
-                            className="px-3 py-1.5 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded"
-                        >
-                            Reset to Default
-                        </button>
-                        <button
-                            onClick={handleStartEdit}
-                            className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
-                        >
-                            ✏️ Edit Configuration
-                        </button>
-                    </div>
-                </>
             )}
         </div>
     )

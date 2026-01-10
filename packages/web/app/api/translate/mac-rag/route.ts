@@ -28,6 +28,7 @@ interface MacRagRequest {
     sourceLang?: 'ja' | 'en';
     targetLang?: 'ja' | 'en';
     phase?: 'context' | 'translate' | 'score' | 'full';
+    literalContext?: string; // New: User-provided instructions
     options?: {
         approaches?: Array<'literal' | 'natural' | 'formal'>;
         includeTMIds?: string[];
@@ -73,6 +74,7 @@ export async function POST(request: NextRequest) {
             sourceLang = 'ja',
             targetLang = 'en',
             phase = 'full',
+            literalContext,
             options = {},
             translation,
         } = body;
@@ -94,6 +96,7 @@ export async function POST(request: NextRequest) {
                 sourceLang,
                 targetLang,
             });
+            if (literalContext) (context as any).literalContext = literalContext;
             response.context = context;
 
             // Search TM
@@ -154,6 +157,7 @@ export async function POST(request: NextRequest) {
                 sourceLang,
                 targetLang,
             });
+            if (literalContext) (context as any).literalContext = literalContext;
 
             // Generate candidates
             const result = await generateMultipleCandidates({
@@ -202,6 +206,7 @@ export async function POST(request: NextRequest) {
                         formality: response.context.style.formality,
                         tone: response.context.style.tone,
                     } : undefined,
+                    ...({ literalContext } as any)
                 });
                 response.qualityAssessment = assessment;
 

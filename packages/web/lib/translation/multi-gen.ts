@@ -74,6 +74,13 @@ async function generateCandidate(
     // Build context sections
     let contextSection = '';
 
+    // Add Literal Context (Pre-input)
+    // This is injected BEFORE other context to ensure high priority instructions
+    const literalContext = (context as any).literalContext; // Hack: Need to update ContextObject type properly later
+    if (literalContext) {
+        contextSection += `\n## Special Instructions\n${literalContext}\n`;
+    }
+
     // Add TM matches as reference
     if (tmMatches && tmMatches.length > 0) {
         contextSection += '\n## Reference Translations (from Translation Memory)\n';
@@ -100,8 +107,11 @@ async function generateCandidate(
         }
     }
 
-    // Build the prompt
-    const systemPrompt = APPROACH_PROMPTS[approach];
+    // specific import to avoid cycle if any, though PromptService is standalone usually
+    const { getPromptTemplate } = await import('@/lib/agents/prompts');
+    const template = await getPromptTemplate('translation', approach);
+
+    const systemPrompt = template;
     const userPrompt = `Domain: ${context.domain.primary}
 Formality: ${context.style.formality}
 Audience: ${context.style.audience}

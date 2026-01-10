@@ -47,11 +47,13 @@ const AGENT_ICONS: Record<string, string> = {
 }
 
 interface AgentConversationLogProps {
+    articleId?: string
     autoRefresh?: boolean
     refreshInterval?: number
 }
 
 export default function AgentConversationLog({
+    articleId,
     autoRefresh = false,
     refreshInterval = 5000
 }: AgentConversationLogProps) {
@@ -62,7 +64,13 @@ export default function AgentConversationLog({
 
     const fetchLogs = useCallback(async () => {
         try {
-            const response = await fetch('/api/agent/logs?stats=true&limit=50')
+            let url = '/api/agent/logs?stats=true&limit=50'
+            if (articleId) {
+                // When filtering by article, we want all logs
+                // The API will handle the higher limit
+                url = `/api/agent/logs?article_id=${articleId}&stats=true`
+            }
+            const response = await fetch(url)
             if (!response.ok) throw new Error('Failed to load logs')
             const result = await response.json()
             setData(result)

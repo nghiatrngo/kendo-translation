@@ -102,14 +102,26 @@ export async function scoreTranslation(options: ScoringOptions): Promise<Quality
         styleSection = `EXPECTED STYLE:\n- Formality: ${style.formality}\n- Tone: ${style.tone}`;
     }
 
+    // Build literal context section if provided
+    const literalContext = (options as any).literalContext;
+    let literalContextSection = '';
+    if (literalContext) {
+        literalContextSection = `SPECIAL INSTRUCTIONS:\n${literalContext}`;
+    }
+
+    // Get prompt template
+    const { getPromptTemplate } = await import('@/lib/agents/prompts');
+    const template = await getPromptTemplate('reflection', 'quality');
+
     // Build prompt
-    const prompt = QUALITY_SCORING_PROMPT
+    const prompt = template
         .replace('{sourceLang}', sourceLang.toUpperCase())
         .replace('{targetLang}', targetLang.toUpperCase())
         .replace('{sourceText}', sourceText)
         .replace('{translation}', translation)
         .replace('{terminologySection}', terminologySection)
-        .replace('{styleSection}', styleSection);
+        .replace('{styleSection}', styleSection)
+        .replace('{literalContextSection}', literalContextSection);
 
     try {
         // Call LLM for scoring

@@ -33,20 +33,47 @@ function generateId(): string {
 }
 
 /**
- * Log an agent call
+ * Log an agent call (persists to DB and memory)
  */
-export function logAgentCall(log: Omit<AgentLog, 'id' | 'timestamp'>): AgentLog {
+export async function logAgentCall(log: Omit<AgentLog, 'id' | 'timestamp'>): Promise<AgentLog> {
     const entry: AgentLog = {
         id: generateId(),
         timestamp: new Date(),
         ...log,
     };
 
-    agentLogs.unshift(entry); // Add to front (newest first)
-
-    // Trim to max size
+    // 1. Save to memory (for immediate UI updates)
+    agentLogs.unshift(entry);
     if (agentLogs.length > MAX_LOGS) {
         agentLogs.pop();
+    }
+
+    // 2. Persist to Database (fire and forget to not block response)
+    // We dynamically import to avoid circular dependencies if any
+    try {
+        const { createClient } = await import('@/lib/supabase/server');
+        const supabase = await createClient();
+
+        // We need auth context to save to DB (RLS)
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (user) {
+            await supabase.from('agent_logs').insert({
+                user_id: user.id,
+                agent_type: log.agentType,
+                model: log.model,
+                system_prompt: log.messages.find(m => m.role === 'system')?.content,
+                user_prompt: log.messages.find(m => m.role === 'user')?.content || JSON.stringify(log.messages),
+                response: log.response,
+                prompt_tokens: log.usage?.promptTokens,
+                completion_tokens: log.usage?.completionTokens,
+                duration_ms: log.durationMs,
+                error: log.error,
+            });
+        }
+    } catch (err) {
+        console.error('Failed to persist agent log to DB:', err);
+        // Don't throw, just log error so flow continues
     }
 
     return entry;

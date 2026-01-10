@@ -180,6 +180,7 @@ export function useMacRag() {
         approaches?: Array<'literal' | 'natural' | 'formal'>;
         includeTMIds?: string[];
         excludeTMIds?: string[];
+        literalContext?: string; // New
     }) => {
         if (!state.context) {
             throw new Error('Context must be built first');
@@ -196,6 +197,7 @@ export function useMacRag() {
                     sourceLang: state.context.sourceLang,
                     targetLang: state.context.targetLang,
                     phase: 'translate',
+                    literalContext: options?.literalContext,
                     options,
                 }),
             });
@@ -249,7 +251,7 @@ export function useMacRag() {
     }, []);
 
     // Score translation (Phase 3)
-    const score = useCallback(async (translation?: string) => {
+    const score = useCallback(async (translation?: string, options?: { literalContext?: string }) => {
         const textToScore = translation || state.selectedCandidate?.text;
 
         if (!textToScore || !state.context) {
@@ -268,6 +270,7 @@ export function useMacRag() {
                     targetLang: state.context.targetLang,
                     phase: 'score',
                     translation: textToScore,
+                    literalContext: options?.literalContext,
                 }),
             });
 

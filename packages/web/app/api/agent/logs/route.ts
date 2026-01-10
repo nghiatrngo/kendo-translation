@@ -20,41 +20,69 @@ export async function GET(request: NextRequest) {
 
     const response: Record<string, unknown> = {};
 
-    // Get in-memory logs
-    if (source === 'memory' || source === 'both') {
+    // Get database logs (defaulting to DB for persistence)
+    // If source is explicitly 'memory', use memory. Otherwise try DB.
+    if (source === 'memory') {
         response.logs = getRecentLogs(limit);
-        if (includeStats) {
-            response.stats = getLogStats();
-        }
-    }
-
-    // Get database logs if requested
-    if (source === 'db' || source === 'both' || articleId || videoId) {
+    } else {
+        // Source is 'db' or 'both' or undefined (default to DB)
         try {
             const supabase = await createClient();
             let query = supabase
                 .from('agent_logs')
                 .select('*')
-                .order('created_at', { ascending: false })
-                .limit(limit);
+                .order('created_at', { ascending: false });
 
+            // If filtering by article, fetch all logs (up to a safe max like 1000)
+            // otherwise default to standard limit
             if (articleId) {
-                query = query.eq('article_id', articleId);
-            }
-            if (videoId) {
-                query = query.eq('video_id', videoId);
+                query = query.eq('article_id', articleId).limit(1000);
+            } else if (videoId) {
+                query = query.eq('video_id', videoId).limit(1000);
+            } else {
+                query = query.limit(limit);
             }
 
             const { data: dbLogs, error } = await query;
 
             if (error) {
                 console.error('DB logs error:', error);
+                // Fallback to memory if DB fails
+                response.logs = getRecentLogs(limit);
             } else {
-                response.dbLogs = dbLogs;
+                // Map DB logs to AgentLog format
+                response.logs = dbLogs.map((row: any) => ({
+                    id: row.id,
+                    timestamp: row.created_at,
+                    agentType: row.agent_type,
+                    messages: [
+                        ...(row.system_prompt ? [{ role: 'system', content: row.system_prompt }] : []),
+                        ...(row.user_prompt ? [{
+                            role: 'user',
+                            content: row.user_prompt
+                        }] : []) // Note: user_prompt might need parsing if it stored JSON array string, but we stored content or JSON string. 
+                        // In agent-logger.ts: user_prompt: log.messages.find(m => m.role === 'user')?.content || JSON.stringify(log.messages)
+                        // If it's a string from content, it's just user message. If it's JSON array, we might want to parse? 
+                        // For simplicity, let's treat it as user content for now, or check if it looks like JSON array.
+                    ],
+                    response: row.response,
+                    model: row.model,
+                    usage: {
+                        promptTokens: row.prompt_tokens || 0,
+                        completionTokens: row.completion_tokens || 0
+                    },
+                    durationMs: row.duration_ms,
+                    error: row.error
+                }));
             }
         } catch (err) {
             console.error('Failed to fetch DB logs:', err);
+            response.logs = getRecentLogs(limit);
         }
+    }
+
+    if (includeStats) {
+        response.stats = getLogStats();
     }
 
     return NextResponse.json(response);

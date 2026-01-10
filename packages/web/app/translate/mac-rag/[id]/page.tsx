@@ -47,6 +47,9 @@ export default function MacRagTranslatePage() {
     // Context panel visibility
     const [showContextPanel, setShowContextPanel] = useState(true);
 
+    // Literal Context (Special Instructions)
+    const [literalContext, setLiteralContext] = useState('');
+
     // MAC-RAG hook
     const macRag = useMacRag();
 
@@ -87,13 +90,13 @@ export default function MacRagTranslatePage() {
     // Handlers
     const handleStartTranslation = async () => {
         setCurrentPhase('translate');
-        await macRag.translate();
+        await macRag.translate({ literalContext });
     };
 
     const handleAcceptCandidate = async () => {
         if (macRag.selectedCandidate) {
             setCurrentPhase('quality');
-            await macRag.score(macRag.selectedCandidate.text);
+            await macRag.score(macRag.selectedCandidate.text, { literalContext });
         }
     };
 
@@ -408,6 +411,28 @@ export default function MacRagTranslatePage() {
                                 )}
                             </div>
                         )}
+
+                        {/* Literal Context Input */}
+                        <div style={{ marginTop: 16 }}>
+                            <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary, #586e75)', marginBottom: 8 }}>
+                                ✍️ Special Instructions (Literal Context):
+                            </label>
+                            <textarea
+                                value={literalContext}
+                                onChange={(e) => setLiteralContext(e.target.value)}
+                                placeholder="E.g. 'Use British English spelling', 'Translate as if speaking to a child', 'Keep specific terms in Japanese'..."
+                                style={{
+                                    width: '100%',
+                                    minHeight: 80,
+                                    padding: 12,
+                                    borderRadius: 6,
+                                    border: '1px solid var(--border-color, #93a1a1)',
+                                    fontSize: 14,
+                                    fontFamily: 'inherit',
+                                    background: 'white'
+                                }}
+                            />
+                        </div>
                     </>
                 )}
 
@@ -453,6 +478,15 @@ export default function MacRagTranslatePage() {
                                                 <strong style={{ color: 'var(--text-secondary)' }}>Style:</strong>{' '}
                                                 {macRag.context.style.formality}, {macRag.context.style.tone}
                                             </div>
+
+                                            {/* Literal Context Display in Summary */}
+                                            {literalContext && (
+                                                <div style={{ gridColumn: '1 / -1', borderTop: '1px dashed #ccc', paddingTop: 8, marginTop: 4 }}>
+                                                    <strong style={{ color: 'var(--text-secondary)' }}>Special Instructions:</strong>{' '}
+                                                    <span style={{ fontStyle: 'italic', color: '#b58900' }}>{literalContext}</span>
+                                                </div>
+                                            )}
+
                                             {macRag.terminology && macRag.terminology.requiredTerms.length > 0 && (
                                                 <div style={{ gridColumn: '1 / -1' }}>
                                                     <strong style={{ color: 'var(--text-secondary)' }}>Terminology:</strong>{' '}
@@ -590,7 +624,7 @@ export default function MacRagTranslatePage() {
                 {/* Tab Content */}
                 <div style={{ padding: 16, background: 'var(--bg-primary, #fdf6e3)' }}>
                     {activeTab === 'config' && <AgentConfigPanel />}
-                    {activeTab === 'logs' && <AgentConversationLog autoRefresh={false} />}
+                    {activeTab === 'logs' && <AgentConversationLog autoRefresh={false} articleId={articleId} />}
                 </div>
             </div>
         </div>
