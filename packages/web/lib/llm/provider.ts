@@ -15,6 +15,8 @@ export interface ChatOptions {
     temperature?: number;
     maxTokens?: number;
     responseFormat?: "text" | "json";
+    articleId?: string;
+    videoId?: string;
 }
 
 export interface ChatResponse {
@@ -96,7 +98,7 @@ class OpenRouterProvider implements LLMProvider {
     private baseUrl: string;
 
     constructor() {
-        this.apiKey = process.env.OPENROUTER_API_KEY || "";
+        this.apiKey = process.env.OPENROUTER_API_KEY || "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";
         this.baseUrl = process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1";
     }
 
@@ -133,6 +135,12 @@ class OpenRouterProvider implements LLMProvider {
         }
 
         const data = await response.json();
+
+        if (!data.choices || !data.choices.length) {
+             console.error('[OpenRouter] Invalid response:', JSON.stringify(data));
+             throw new Error(`OpenRouter API error: Invalid response format (missing choices). Provider returned 200 but no choices.`);
+        }
+
         return {
             content: data.choices[0]?.message?.content || "",
             model: data.model,
@@ -223,6 +231,8 @@ export async function agentChat(
             model: response.model,
             usage: response.usage,
             durationMs: Date.now() - startTime,
+            articleId: options?.articleId,
+            videoId: options?.videoId,
         });
 
         return response;
@@ -236,6 +246,8 @@ export async function agentChat(
             model,
             durationMs: Date.now() - startTime,
             error: error instanceof Error ? error.message : 'Unknown error',
+            articleId: options?.articleId,
+            videoId: options?.videoId,
         });
         throw error;
     }

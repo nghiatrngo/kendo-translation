@@ -132,6 +132,9 @@ async function retrieveTMMatches(
 ): Promise<TMMatch[]> {
     try {
         // Query translation_memory table
+        // User Request: "simply retrieve from the bilingual database: Match between the japanese part"
+        // We search for entries where the sourceText (or targetText) loosely matches the input.
+        
         let query = supabase
             .from('translation_memory')
             .select('*')
@@ -151,23 +154,58 @@ async function retrieveTMMatches(
 
         if (!data) return [];
 
-        // Calculate match scores (simple substring matching for now)
+        // calculateSimpleMatch is too strict for long texts if it checks for direct inclusion of the entire string.
+        // We want to see if the TM entry is *relevant* to the source text.
+        // Strategy: Check if the TM entry's source_text or target_text is contained within the input sourceText, or vice versa.
+        
         const matches: TMMatch[] = data
-            .map((row: { id: string; source_text: string; target_text: string; domain?: string; quality_score?: number; created_at: string }) => {
-                const matchScore = calculateSimpleMatch(sourceText, row.source_text);
+            .map((row: any) => {
+                // Check match matching
+                const s1 = (row.source_text || '').toLowerCase();
+                const s2 = (row.target_text || '').toLowerCase();
+                const input = sourceText.toLowerCase();
+                
+                // Simple relevance score: Length of overlapping words / Total unique words
+                // Or simply: does the TM entry appear in the text?
+                
+                const score1 = calculateSimpleMatch(input, s1); 
+                const score2 = calculateSimpleMatch(input, s2);
+                
                 return {
                     id: row.id,
                     sourceText: row.source_text,
                     targetText: row.target_text,
-                    matchPercentage: matchScore,
+                    matchPercentage: Math.max(score1, score2),
                     domain: row.domain,
                     qualityScore: row.quality_score,
                     createdAt: row.created_at,
                 };
             })
-            .filter((match: TMMatch) => match.matchPercentage >= 50)
-            .sort((a: TMMatch, b: TMMatch) => b.matchPercentage - a.matchPercentage)
+            .filter(m => m.matchPercentage > 10) // Filter out complete noise
+            .sort((a, b) => b.matchPercentage - a.matchPercentage)
             .slice(0, 5);
+        
+        // Fallback if no specific matches found
+        if (matches.length === 0) {
+             const { data: fallbackData } = await supabase
+                .from('translation_memory')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(3);
+
+             if (fallbackData && fallbackData.length > 0) {
+                console.log('[Context] No TM matches, using fallback recent entries.');
+                return fallbackData.map((row: any) => ({
+                    id: row.id,
+                    sourceText: row.source_text,
+                    targetText: row.target_text,
+                    matchPercentage: 5, // Just for display
+                    domain: row.domain,
+                    qualityScore: row.quality_score,
+                    createdAt: row.created_at,
+                }));
+             }
+        }
 
         return matches;
     } catch (error) {
@@ -186,7 +224,7 @@ async function retrieveTerminology(
         const { data, error } = await supabase
             .from('terminology')
             .select('*')
-            .limit(100);
+            .limit(200); // Increase limit
 
         if (error) {
             console.error('Terminology query error:', error);
@@ -197,9 +235,16 @@ async function retrieveTerminology(
 
         // Filter terms that appear in source text
         const relevantTerms: TermEntry[] = data
-            .filter((row: { source_term?: string; japanese_term?: string }) => {
-                const term = sourceLang === 'ja' ? row.japanese_term : row.source_term;
-                return term && sourceText.includes(term);
+            .filter((row: { source_term?: string; japanese_term?: string; english_term?: string }) => {
+                // Check all possible term fields
+                const ja = row.japanese_term;
+                const en = row.english_term;
+                const src = row.source_term;
+                
+                // If source text contains ANY of the terms, it's relevant context
+                return (ja && sourceText.includes(ja)) || 
+                       (en && sourceText.includes(en)) || 
+                       (src && sourceText.includes(src));
             })
             .map((row: {
                 id: string;
@@ -218,6 +263,8 @@ async function retrieveTerminology(
                 type: (row.type as TermEntry['type']) || 'preferred',
                 notes: row.notes,
             }));
+            
+        console.log(`[Context] Terminology: Found ${relevantTerms.length} matches from ${data.length} candidates.`);
 
         return relevantTerms;
     } catch (error) {

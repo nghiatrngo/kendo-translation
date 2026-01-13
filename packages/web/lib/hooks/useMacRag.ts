@@ -181,6 +181,8 @@ export function useMacRag() {
         includeTMIds?: string[];
         excludeTMIds?: string[];
         literalContext?: string; // New
+        articleId?: string; // Metadata
+        videoId?: string;
     }) => {
         if (!state.context) {
             throw new Error('Context must be built first');
@@ -198,6 +200,8 @@ export function useMacRag() {
                     targetLang: state.context.targetLang,
                     phase: 'translate',
                     literalContext: options?.literalContext,
+                    articleId: options?.articleId,
+                    videoId: options?.videoId,
                     options,
                 }),
             });

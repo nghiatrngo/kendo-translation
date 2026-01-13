@@ -16,12 +16,12 @@ export async function GET(request: NextRequest) {
     const includeStats = searchParams.get('stats') === 'true';
     const articleId = searchParams.get('article_id');
     const videoId = searchParams.get('video_id');
-    const source = searchParams.get('source') || 'memory'; // 'memory', 'db', or 'both'
+    const source = searchParams.get('source') || 'db'; // Default to DB for persistence
 
     const response: Record<string, unknown> = {};
 
     // Get database logs (defaulting to DB for persistence)
-    // If source is explicitly 'memory', use memory. Otherwise try DB.
+    // If source is explicitly 'memory', use memory.
     if (source === 'memory') {
         response.logs = getRecentLogs(limit);
     } else {
@@ -82,7 +82,37 @@ export async function GET(request: NextRequest) {
     }
 
     if (includeStats) {
-        response.stats = getLogStats();
+        // Calculate stats from the fetched logs to ensure consistency
+        const logs = (response.logs as any[]) || [];
+        const totalCalls = logs.length;
+        
+        if (totalCalls > 0) {
+            const byAgent: Record<string, number> = {};
+            let totalTokens = 0;
+            let totalDuration = 0;
+
+            for (const log of logs) {
+                const agentType = log.agentType || 'unknown';
+                byAgent[agentType] = (byAgent[agentType] || 0) + 1;
+                totalTokens += (log.usage?.promptTokens || 0) + (log.usage?.completionTokens || 0);
+                totalDuration += log.durationMs || 0;
+            }
+
+            response.stats = {
+                totalCalls,
+                byAgent,
+                totalTokens,
+                avgDurationMs: Math.round(totalDuration / totalCalls)
+            };
+        } else {
+            // If no logs found in DB/memory context, return empty stats
+            response.stats = {
+                totalCalls: 0,
+                byAgent: {},
+                totalTokens: 0,
+                avgDurationMs: 0
+            };
+        }
     }
 
     return NextResponse.json(response);

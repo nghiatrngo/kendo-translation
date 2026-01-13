@@ -37,6 +37,9 @@ interface MacRagRequest {
     };
     // For phase 'score'
     translation?: string;
+    // Metadata for logging
+    articleId?: string;
+    videoId?: string;
 }
 
 interface MacRagResponse {
@@ -167,6 +170,8 @@ export async function POST(request: NextRequest) {
                 terminology: response.terminology,
                 approaches: options.approaches || ['literal', 'natural', 'formal'],
                 parallel: true,
+                articleId: body.articleId,
+                videoId: body.videoId,
             });
 
             response.candidates = result.candidates.map((c, i) => ({

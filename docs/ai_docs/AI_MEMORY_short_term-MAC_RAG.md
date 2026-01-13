@@ -1,29 +1,39 @@
 # AI Memory: MAC-RAG Integration
 
 ## Current Status
-✅ Implementation Complete
-🔄 Verification Pending
 
-## Files Created
+✅ Implementation Complete
+✅ Verification Complete (Jan 2025)
+
+## Files Created/Modified
+
 - `app/translate/mac-rag/page.tsx` - Article queue for MAC-RAG
-- `app/translate/mac-rag/[id]/page.tsx` - 3-phase translation page
+- `app/translate/mac-rag/[id]/page.tsx` - Single-phase translation page
+- `components/translation/ContextBuilderPanel.tsx` - Tabbed context & retrieval
+- `lib/hooks/useMacRag.ts` - React hook for pipeline
+- `lib/llm/agent-logger.ts` - Logging with articleId/videoId
 - Updated `RoleBasedNavigation.tsx` - Added 🔬 MAC-RAG nav link
 
-## 3-Phase Workflow Implemented
-1. **Context**: ContextBuilderPanel with domain, TM, terms, JA-EN analysis
-2. **Translate**: TranslationCandidates with literal/natural/formal options
-3. **Score**: PostTranslationPanel with quality scores and save
+## Current Workflow (Simplified)
 
-## Components Wired
-- useMacRag hook → buildContext(), translate(), score()
-- ContextBuilderPanel → Phase 1
-- TranslationCandidates → Phase 2
-- PostTranslationPanel → Phase 3
+1. **Context Building**: Special instructions, source text display
+2. **Retrieval Results**: Bilingual DB Matches, Terminology (in tabs)
+3. **Generate Translation**: Single "Natural" translation output
+4. **Agent Logs**: Viewable per-article, persisted to DB
 
-## Verification Checklist
-- [ ] Login as Translator
-- [ ] Navigation to MAC-RAG
-- [ ] Queue Page load
-- [ ] Phase 1: Context Generation
-- [ ] Phase 2: Candidate Generation
-- [ ] Phase 3: Quality Scoring & Save
+## Key Components
+
+- `useMacRag` hook → `buildContext()`, `translate({ articleId })`, `score()`
+- `ContextBuilderPanel` → Tabbed UI (Instructions | Retrieval)
+- `AgentConversationLog` → Shows logs filtered by `articleId`
+
+## Verified Features (Jan 2025)
+
+- [x] Login as Translator
+- [x] Navigation to MAC-RAG
+- [x] Queue Page load
+- [x] Context Building & Retrieval display
+- [x] Translation Generation
+- [x] Agent Logs visibility (with articleId propagation)
+- [x] Bilingual DB Matches (renamed from TM)
+- [x] Terminology display

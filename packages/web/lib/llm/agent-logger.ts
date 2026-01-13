@@ -17,8 +17,10 @@ export interface AgentLog {
         promptTokens: number;
         completionTokens: number;
     };
-    durationMs: number;
+    durationMs: number; 
     error?: string;
+    articleId?: string; // New: Link to article
+    videoId?: string;   // New: Link to video
 }
 
 // In-memory log store (survives hot reloads in dev, cleared on server restart)
@@ -48,32 +50,39 @@ export async function logAgentCall(log: Omit<AgentLog, 'id' | 'timestamp'>): Pro
         agentLogs.pop();
     }
 
-    // 2. Persist to Database (fire and forget to not block response)
-    // We dynamically import to avoid circular dependencies if any
+    // 2. Persist to Database (Await to ensure it saves in serverless env)
     try {
         const { createClient } = await import('@/lib/supabase/server');
         const supabase = await createClient();
 
         // We need auth context to save to DB (RLS)
         const { data: { user } } = await supabase.auth.getUser();
+        const userId = user?.id || null;
 
-        if (user) {
-            await supabase.from('agent_logs').insert({
-                user_id: user.id,
-                agent_type: log.agentType,
-                model: log.model,
-                system_prompt: log.messages.find(m => m.role === 'system')?.content,
-                user_prompt: log.messages.find(m => m.role === 'user')?.content || JSON.stringify(log.messages),
-                response: log.response,
-                prompt_tokens: log.usage?.promptTokens,
-                completion_tokens: log.usage?.completionTokens,
-                duration_ms: log.durationMs,
-                error: log.error,
-            });
+        // Persist log (allow null user_id if table permits)
+        // We attempt to insert regardless of user presence to support debugging/anonymous usage
+        const { error: insertError } = await supabase.from('agent_logs').insert({
+            user_id: userId, // Can be null
+            agent_type: log.agentType,
+            model: log.model,
+            system_prompt: log.messages.find(m => m.role === 'system')?.content,
+            user_prompt: log.messages.find(m => m.role === 'user')?.content || JSON.stringify(log.messages),
+            response: log.response,
+            prompt_tokens: log.usage?.promptTokens,
+            completion_tokens: log.usage?.completionTokens,
+            duration_ms: log.durationMs,
+            error: log.error,
+            article_id: log.articleId,
+            video_id: log.videoId,
+        });
+
+        if (insertError) {
+            console.error('[AgentLogger] DB Insert Error:', insertError.message);
+        } else {
+            console.log(`[AgentLogger] Log persisted. User: ${userId || 'Anonymous'}`);
         }
     } catch (err) {
         console.error('Failed to persist agent log to DB:', err);
-        // Don't throw, just log error so flow continues
     }
 
     return entry;

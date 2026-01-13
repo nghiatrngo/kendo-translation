@@ -1,29 +1,39 @@
 # MAC-RAG Browser Testing & Fixes
 
 - [x] Resolve Authentication Blockers <!-- id: 0 -->
-    - [x] Investigate local Supabase/Auth setup <!-- id: 1 -->
-    - [x] Ensure `testuser@example.com` has correct role/verified status <!-- id: 2 -->
-    - [x] Verify login works manually or via script <!-- id: 3 -->
-- [x] Fix Next.js Hydration Errors <!-- id: 4 -->
-    - [x] Identify source of hydration mismatch on Login/Home <!-- id: 5 -->
-    - [x] Apply fixes <!-- id: 6 -->
-- [x] Browser Testing (UX Improvements) <!-- id: 7 -->
-    - [x] Test Clickable Phase Navigation <!-- id: 8 -->
-    - [x] Test Context Summary Panel <!-- id: 9 -->
-    - [x] Test Text-Based Agent Config Editor <!-- id: 10 -->
-    - [x] Verify successful translation flow <!-- id: 11 -->
-- [ ] Feature: Dynamic Model Fetching <!-- id: 12 -->
-    - [x] Implement backend fetch from OpenRouter/OpenAI <!-- id: 13 -->
-    - [x] Verify validation accepts new models <!-- id: 14 -->
+  - [x] Investigate local Supabase/Auth setup <!-- id: 1 -->
+  - [x] Ensure `testuser@example.com` has correct role/verified status <!-- id: 2 -->
+  - [x] Verify login works manually or via script <!-- id: 3 -->
+- [x] **Rework Translation Flow** <!-- id: 4 -->
+  - [x] Remove "Translation Candidates" component <!-- id: 5 -->
+  - [x] Create single "LLM Output" component <!-- id: 6 -->
+  - [x] Consolidate "Source Text" and "Context Summary" into "Context Building" <!-- id: 7 -->
+  - [x] Add "Edit" button to Context Building (already exists as editable fields) <!-- id: 8 -->
+  - [x] Wire up "Send to LLM" button to trigger single translation <!-- id: 9 -->
+- [x] **Verification** <!-- id: 10 -->
+  - [x] Verify context building and editing <!-- id: 11 -->
+  - [x] Verify single translation generation <!-- id: 12 -->
+  - [x] Verify UI consolidation <!-- id: 13 -->
+  - [x] Implement backend fetch from OpenRouter/OpenAI <!-- id: 13 -->
+  - [x] Verify validation accepts new models <!-- id: 14 -->
 - [ ] Feature: MAC-RAG Enhancements <!-- id: 15 -->
-    - [x] DB Migration: Agent Prompts Table <!-- id: 16 -->
-    - [x] Backend: Persist Agent Logs to DB <!-- id: 17 -->
-    - [x] Backend: Dynamic Prompt Service <!-- id: 18 -->
-    - [x] API: Update Config & Translate for Prompts/Literal Context <!-- id: 19 -->
-    - [x] UI: Agent Prompt Editor <!-- id: 20 -->
-    - [x] UI: Literal Context Input <!-- id: 21 -->
-    - [x] Verify: Persistence and Prompt Injection <!-- id: 22 -->
+  - [x] DB Migration: Agent Prompts Table <!-- id: 16 -->
+  - [x] Backend: Persist Agent Logs to DB <!-- id: 17 -->
+  - [x] Backend: Dynamic Prompt Service <!-- id: 18 -->
+  - [x] API: Update Config & Translate for Prompts/Literal Context <!-- id: 19 -->
+  - [x] UI: Agent Prompt Editor <!-- id: 20 -->
+  - [x] UI: Literal Context Input <!-- id: 21 -->
+  - [x] Verify: Persistence and Prompt Injection <!-- id: 22 -->
 - [ ] UI Refinements (Logs, Config, Summary) <!-- id: 23 -->
-    - [x] Log: Add Article ID support for full history <!-- id: 24 -->
-    - [x] Config: Add defaults API & Sub-tabs UI <!-- id: 25 -->
-    - [x] Page: Show Literal Context in Summary <!-- id: 26 -->
+  - [x] Log: Add Article ID support for full history <!-- id: 24 -->
+  - [x] Config: Add defaults API & Sub-tabs UI <!-- id: 25 -->
+  - [x] **Refine Translation UI & Debugging (Session 2)**
+    - [x] Debug "Cannot read properties of undefined" error (Fixed in provider.ts)
+    - [x] Consolidate "Context Builder" with Tabs
+      - [x] Tab 1: "Instructions & Source"
+      - [x] Tab 2: "Retrieval Results" (Moved TM & Terminology)
+    - [x] Remove Domain/Style Dropdowns
+    - [x] Fix empty/missing Retrieval Results (TM & Terminology)
+    - [x] Fix Agent Log not updating (Fixed async handling)
+    - [x] Verify functionality
+    - [x] Clean up debug code

@@ -24,6 +24,8 @@ export interface MultiGenOptions {
     terminology?: TerminologyConstraints;
     approaches?: Array<'literal' | 'natural' | 'formal'>;
     parallel?: boolean;
+    articleId?: string;
+    videoId?: string;
 }
 
 export interface MultiGenResult {
@@ -67,7 +69,8 @@ async function generateCandidate(
     approach: 'literal' | 'natural' | 'formal',
     context: ContextObject,
     tmMatches?: TMMatch[],
-    terminology?: TerminologyConstraints
+    terminology?: TerminologyConstraints,
+    options?: { articleId?: string; videoId?: string }
 ): Promise<TranslationCandidate> {
     const startTime = Date.now();
 
@@ -83,7 +86,7 @@ async function generateCandidate(
 
     // Add TM matches as reference
     if (tmMatches && tmMatches.length > 0) {
-        contextSection += '\n## Reference Translations (from Translation Memory)\n';
+        contextSection += '\n## Reference Translations (from Bilingual Database Matches)\n';
         for (const match of tmMatches.slice(0, 3)) {
             contextSection += `Source: ${match.sourceText.slice(0, 100)}...\n`;
             contextSection += `Translation: ${match.targetText.slice(0, 100)}...\n`;
@@ -134,6 +137,8 @@ CRITICAL INSTRUCTIONS:
             { role: 'user', content: userPrompt },
         ], {
             temperature: approach === 'literal' ? 0.3 : approach === 'formal' ? 0.4 : 0.5,
+            articleId: options?.articleId, // Pass metadata
+            videoId: options?.videoId,
         });
 
         // Clean response content
@@ -223,6 +228,8 @@ export async function generateMultipleCandidates(
         terminology,
         approaches = ['literal', 'natural', 'formal'],
         parallel = true,
+        articleId,
+        videoId,
     } = options;
 
     let candidates: TranslationCandidate[];
@@ -230,7 +237,7 @@ export async function generateMultipleCandidates(
     if (parallel) {
         // Generate all candidates in parallel
         const promises = approaches.map(approach =>
-            generateCandidate(sourceText, approach, context, tmMatches, terminology)
+            generateCandidate(sourceText, approach, context, tmMatches, terminology, { articleId, videoId })
         );
         candidates = await Promise.all(promises);
     } else {
@@ -238,7 +245,7 @@ export async function generateMultipleCandidates(
         candidates = [];
         for (const approach of approaches) {
             const candidate = await generateCandidate(
-                sourceText, approach, context, tmMatches, terminology
+                sourceText, approach, context, tmMatches, terminology, { articleId, videoId }
             );
             candidates.push(candidate);
         }

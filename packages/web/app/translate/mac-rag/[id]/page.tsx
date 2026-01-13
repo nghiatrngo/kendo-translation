@@ -12,7 +12,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import useMacRag from '@/lib/hooks/useMacRag';
 import ContextBuilderPanel from '@/components/translation/ContextBuilderPanel';
-import TranslationCandidates from '@/components/translation/TranslationCandidates';
+import TranslationOutput from '@/components/translation/TranslationOutput';
 import PostTranslationPanel from '@/components/translation/PostTranslationPanel';
 import AgentConfigPanel from '@/components/AgentConfigPanel';
 import AgentConversationLog from '@/components/AgentConversationLog';
@@ -88,12 +88,18 @@ export default function MacRagTranslatePage() {
     }, [currentPhase, article, macRag]);
 
     // Handlers
-    const handleStartTranslation = async () => {
+    const handleStartTranslation = async (contextInstructions?: string) => {
         setCurrentPhase('translate');
-        await macRag.translate({ literalContext });
+        // Request ONLY Natural translation
+        await macRag.translate({
+            literalContext: contextInstructions,
+            approaches: ['natural'],
+            articleId, // Pass ID for logging
+        });
     };
 
     const handleAcceptCandidate = async () => {
+        // If we have a selected candidate (which is the only one), proceed
         if (macRag.selectedCandidate) {
             setCurrentPhase('quality');
             await macRag.score(macRag.selectedCandidate.text, { literalContext });
@@ -149,6 +155,26 @@ export default function MacRagTranslatePage() {
     if (loadingArticle) {
         return (
             <div className="mac-rag-page loading">
+                <style jsx>{`
+                    .loading {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        min-height: 400px;
+                        font-family: system-ui, -apple-system, sans-serif;
+                    }
+                    .spinner {
+                        width: 40px;
+                        height: 40px;
+                        border: 4px solid #eee8d5;
+                        border-top-color: #268bd2;
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                        margin-bottom: 16px;
+                    }
+                    @keyframes spin { to { transform: rotate(360deg); } }
+                `}</style>
                 <div className="spinner" />
                 <p>Loading article...</p>
             </div>
@@ -230,23 +256,6 @@ export default function MacRagTranslatePage() {
           background: rgba(255,255,255,0.2);
           font-weight: 700;
         }
-        .source-panel {
-          background: var(--bg-primary, #fdf6e3);
-          border: 1px solid var(--border-color, #93a1a1);
-          border-radius: 8px;
-          padding: 16px;
-          margin-bottom: 24px;
-        }
-        .source-panel h3 {
-          font-size: 14px;
-          color: var(--text-secondary, #586e75);
-          margin: 0 0 8px 0;
-        }
-        .source-text {
-          font-size: 16px;
-          line-height: 1.8;
-          color: var(--text-primary, #073642);
-        }
         .phase-content {
           margin-bottom: 24px;
         }
@@ -286,28 +295,6 @@ export default function MacRagTranslatePage() {
           color: var(--text-primary, #073642);
           border: 1px solid var(--border-color, #93a1a1);
         }
-        .loading {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          min-height: 400px;
-        }
-        .spinner {
-          width: 40px;
-          height: 40px;
-          border: 4px solid var(--border-color, #93a1a1);
-          border-top-color: var(--accent, #268bd2);
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        .error {
-          text-align: center;
-          padding: 40px;
-        }
         .ja-analysis {
           background: var(--bg-secondary, #eee8d5);
           border-radius: 8px;
@@ -340,12 +327,13 @@ export default function MacRagTranslatePage() {
                 <div className="subtitle">{article.title}</div>
             </div>
 
-            {/* Phase Indicator - Clickable for navigation */}
+            {/* Phase Indicator */}
             <div className="phase-indicator">
                 <button
                     className={`phase-step ${currentPhase === 'context' ? 'active' : currentPhase !== 'loading' ? 'completed' : ''}`}
                     onClick={() => currentPhase !== 'loading' && setCurrentPhase('context')}
                     style={{ cursor: currentPhase !== 'loading' ? 'pointer' : 'default', border: 'none' }}
+                    disabled={currentPhase === 'loading'}
                 >
                     <span className="number">1</span>
                     Context
@@ -370,169 +358,30 @@ export default function MacRagTranslatePage() {
                 </button>
             </div>
 
-            {/* Source Text Panel */}
-            <div className="source-panel">
-                <h3>📄 Source Text (Japanese)</h3>
-                <div className="source-text">{article.content_ja}</div>
-            </div>
-
             {/* Phase Content */}
             <div className="phase-content">
                 {/* PHASE 1: Context Building */}
-                {currentPhase === 'context' && (
-                    <>
+                {(currentPhase === 'context' || currentPhase === 'translate') && (
+                    <div style={{ marginBottom: 24 }}>
                         <ContextBuilderPanel
                             sourceText={article.content_ja || ''}
                             sourceLang="ja"
                             targetLang="en"
                             onContextReady={() => { }}
-                            onStartTranslation={handleStartTranslation}
+                            onStartTranslation={(context) => handleStartTranslation(context)}
                         />
-
-                        {/* JA-EN Analysis */}
-                        {macRag.jaAnalysis && (
-                            <div className="ja-analysis">
-                                <h4>🇯🇵 JA-EN Analysis</h4>
-                                <div className="ja-item">
-                                    <span className="ja-label">Keigo Level:</span>
-                                    <span className="ja-value">{macRag.jaAnalysis.honorifics?.level || 'N/A'}</span>
-                                </div>
-                                <div className="ja-item">
-                                    <span className="ja-label">Register:</span>
-                                    <span className="ja-value">{macRag.jaAnalysis.honorifics?.targetRegister || 'N/A'}</span>
-                                </div>
-                                {macRag.jaAnalysis.subjects && macRag.jaAnalysis.subjects.length > 0 && (
-                                    <div className="ja-item">
-                                        <span className="ja-label">Subjects:</span>
-                                        <span className="ja-value">
-                                            {macRag.jaAnalysis.subjects.map(s => s.inferredSubject).join(', ')}
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Literal Context Input */}
-                        <div style={{ marginTop: 16 }}>
-                            <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary, #586e75)', marginBottom: 8 }}>
-                                ✍️ Special Instructions (Literal Context):
-                            </label>
-                            <textarea
-                                value={literalContext}
-                                onChange={(e) => setLiteralContext(e.target.value)}
-                                placeholder="E.g. 'Use British English spelling', 'Translate as if speaking to a child', 'Keep specific terms in Japanese'..."
-                                style={{
-                                    width: '100%',
-                                    minHeight: 80,
-                                    padding: 12,
-                                    borderRadius: 6,
-                                    border: '1px solid var(--border-color, #93a1a1)',
-                                    fontSize: 14,
-                                    fontFamily: 'inherit',
-                                    background: 'white'
-                                }}
-                            />
-                        </div>
-                    </>
+                    </div>
                 )}
 
-                {/* PHASE 2: Translation Candidates */}
+                {/* PHASE 2: Translation Output */}
                 {currentPhase === 'translate' && (
-                    <>
-                        {/* Collapsible Context Summary */}
-                        {macRag.context && (
-                            <div style={{
-                                marginBottom: 16,
-                                background: 'var(--bg-secondary, #eee8d5)',
-                                border: '1px solid var(--border-color, #93a1a1)',
-                                borderRadius: 8,
-                                overflow: 'hidden'
-                            }}>
-                                <button
-                                    onClick={() => setShowContextPanel(!showContextPanel)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 16px',
-                                        display: 'flex',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                        background: 'transparent',
-                                        border: 'none',
-                                        cursor: 'pointer',
-                                        fontSize: 14,
-                                        fontWeight: 500,
-                                        color: 'var(--text-primary, #073642)'
-                                    }}
-                                >
-                                    <span>📋 Context Summary</span>
-                                    <span>{showContextPanel ? '▼' : '▶'}</span>
-                                </button>
-                                {showContextPanel && (
-                                    <div style={{ padding: '0 16px 16px', fontSize: 13 }}>
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                                            <div>
-                                                <strong style={{ color: 'var(--text-secondary)' }}>Domain:</strong>{' '}
-                                                {macRag.context.domain.primary} ({Math.round(macRag.context.domain.confidence * 100)}%)
-                                            </div>
-                                            <div>
-                                                <strong style={{ color: 'var(--text-secondary)' }}>Style:</strong>{' '}
-                                                {macRag.context.style.formality}, {macRag.context.style.tone}
-                                            </div>
-
-                                            {/* Literal Context Display in Summary */}
-                                            {literalContext && (
-                                                <div style={{ gridColumn: '1 / -1', borderTop: '1px dashed #ccc', paddingTop: 8, marginTop: 4 }}>
-                                                    <strong style={{ color: 'var(--text-secondary)' }}>Special Instructions:</strong>{' '}
-                                                    <span style={{ fontStyle: 'italic', color: '#b58900' }}>{literalContext}</span>
-                                                </div>
-                                            )}
-
-                                            {macRag.terminology && macRag.terminology.requiredTerms.length > 0 && (
-                                                <div style={{ gridColumn: '1 / -1' }}>
-                                                    <strong style={{ color: 'var(--text-secondary)' }}>Terminology:</strong>{' '}
-                                                    {macRag.terminology.requiredTerms.slice(0, 5).map(t => `${t.japaneseTerm}→${t.englishTerm}`).join(', ')}
-                                                    {macRag.terminology.requiredTerms.length > 5 && ` +${macRag.terminology.requiredTerms.length - 5} more`}
-                                                </div>
-                                            )}
-                                            {macRag.jaAnalysis && (
-                                                <div style={{ gridColumn: '1 / -1' }}>
-                                                    <strong style={{ color: 'var(--text-secondary)' }}>Keigo:</strong>{' '}
-                                                    {macRag.jaAnalysis.honorifics?.level || 'N/A'} → {macRag.jaAnalysis.honorifics?.targetRegister || 'N/A'}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <button
-                                            onClick={() => setCurrentPhase('context')}
-                                            style={{
-                                                marginTop: 12,
-                                                padding: '6px 12px',
-                                                fontSize: 12,
-                                                background: 'var(--accent, #268bd2)',
-                                                color: 'white',
-                                                border: 'none',
-                                                borderRadius: 4,
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            ← Edit Context
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        <TranslationCandidates
-                            sourceText={article.content_ja || ''}
-                            sourceLang="ja"
-                            candidates={macRag.candidates.map((c, i) => ({
-                                ...c,
-                                isRecommended: i === macRag.recommendedIndex,
-                            }))}
-                            onSelect={(candidate) => macRag.selectCandidate(candidate.id)}
-                            onAccept={handleAcceptCandidate}
-                            onRegenerate={() => macRag.translate()}
-                            isLoading={macRag.isLoading}
-                        />
-                    </>
+                    <TranslationOutput
+                        translation={macRag.selectedCandidate?.text || ''}
+                        modelName="Meta Llama 3.3 (Natural)"
+                        isLoading={macRag.isLoading}
+                        onAccept={handleAcceptCandidate}
+                        onRegenerate={() => macRag.translate({ literalContext, approaches: ['natural'] })}
+                    />
                 )}
 
                 {/* PHASE 3: Quality & Save */}
@@ -542,7 +391,7 @@ export default function MacRagTranslatePage() {
                         translation={macRag.selectedCandidate.text}
                         scores={macRag.qualityAssessment?.scores}
                         issues={macRag.qualityAssessment?.issues as any}
-                        routing={macRag.routing?.decision as 'auto_accept' | 'light_pe' | 'standard_pe' | 'full_revision'}
+                        routing={macRag.routing?.decision as any}
                         onSave={handleSave}
                         onSkip={handleSkip}
                         isLoading={macRag.isLoading}
