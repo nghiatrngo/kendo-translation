@@ -3,6 +3,7 @@
 ## Overview
 
 Kendo Translation is deployed using:
+
 - **Frontend/API**: Render.com (Next.js)
 - **Database**: Supabase (PostgreSQL)
 
@@ -10,10 +11,10 @@ Kendo Translation is deployed using:
 
 ## Production URLs
 
-| Service | URL |
-|---------|-----|
-| **App** | https://kendo-translation.onrender.com |
-| **GitHub** | https://github.com/nghiatrngo/kendo-translation |
+| Service      | URL                                                         |
+| ------------ | ----------------------------------------------------------- |
+| **App**      | https://kendo-translation.onrender.com                      |
+| **GitHub**   | https://github.com/nghiatrngo/kendo-translation             |
 | **Supabase** | https://supabase.com/dashboard/project/mbgmyvmsvenvtecvrjia |
 
 ---
@@ -36,6 +37,7 @@ OPENROUTER_API_KEY=your-key
 
 ```bash
 NODE_ENV=production
+SUPABASE_SERVICE_ROLE_KEY=your-service-key  # For debug endpoints
 ```
 
 ---
@@ -59,6 +61,7 @@ Render is configured to auto-deploy on push to master via `render.yaml`.
 1. Check https://kendo-translation.onrender.com
 2. Verify all routes load
 3. Test API endpoints
+4. Test MAC-RAG translation flow
 
 ---
 
@@ -70,6 +73,17 @@ Render is configured to auto-deploy on push to master via `render.yaml`.
 2. Run via Supabase Dashboard SQL Editor
 3. Verify tables exist
 
+### Key Tables
+
+| Table              | Purpose                              |
+| ------------------ | ------------------------------------ |
+| articles           | Article content (JA/EN)              |
+| terminology        | Kendo terms glossary                 |
+| translation_memory | Bilingual pairs for matching         |
+| agent_logs         | LLM call logs with article/video IDs |
+| agent_prompts      | Customizable agent prompts           |
+| profiles           | User roles (admin/translator/reader) |
+
 ### Rollback
 
 Manually revert via Supabase SQL Editor.
@@ -78,12 +92,14 @@ Manually revert via Supabase SQL Editor.
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| API returns 500 | Check Supabase credentials in Render env vars |
-| Build fails | Run `npm run build` locally first |
-| Auth not working | Verify Supabase Auth settings |
+| Issue            | Solution                                      |
+| ---------------- | --------------------------------------------- |
+| API returns 500  | Check Supabase credentials in Render env vars |
+| Build fails      | Run `npm run build` locally first             |
+| Auth not working | Verify Supabase Auth settings                 |
+| Agent logs empty | Check OPENROUTER_API_KEY is set               |
+| MAC-RAG errors   | Check console for detailed error messages     |
 
 ---
 
-*Last Updated: December 30, 2024*
+_Last Updated: January 12, 2025_

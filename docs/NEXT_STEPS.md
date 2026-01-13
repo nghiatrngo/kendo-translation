@@ -1,206 +1,137 @@
-# Testing Session Complete - Summary & Next Steps
+# Next Steps & Roadmap
 
-**Date**: December 31, 2025  
-**Session**: Comprehensive Testing - User Roles & Video Features  
-**Status**: ✅ All Tests Passed
+**Date**: January 12, 2025  
+**Status**: ✅ Phase 6 (MAC-RAG) Complete
 
 ---
 
-## ✅ Completed Tasks
+## ✅ Completed (as of January 2025)
 
-### 1. User Roles Testing
-- ✅ Created 3 test users (admin, translator, reader)
-- ✅ All login flows working (3/3 passed)
-- ✅ Roles returned correctly from API
-- ✅ Fixed critical RLS infinite recursion bug
+### Phase 1-4: Core Features (December 2024)
 
-### 2. Video Features Testing
-- ✅ Video add/list API working
-- ✅ Note creation/listing/deletion working
-- ✅ User authentication properly enforced
-- ✅ RLS policies configured correctly
+- ✅ User authentication with role-based access
+- ✅ Article CRUD and translation editing
+- ✅ Video player with timestamped notes
+- ✅ Terminology search (920+ terms)
+- ✅ Bookmarks for articles and videos
+- ✅ Dark mode with proper contrast
+- ✅ Role-based navigation (Admin/Translator/Reader)
 
-### 3. Bug Fixes
-- ✅ **Issue #12**: Profiles RLS infinite recursion
-- ✅ **Issue #13**: AuthHeader hanging with client calls  
-- ✅ **Issue #14**: Video notes missing user_id
+### Phase 5: MAC-RAG Translation (January 2025)
 
-### 4. Documentation
-- ✅ Updated `docs/debug_progress.md` with Phase 4
-- ✅ Created `AI_MEMORY_short_term-testing.md` with patterns
-- ✅ Committed all changes (commit: 525d58b)
+- ✅ MAC-RAG pipeline with context-aware translation
+- ✅ Bilingual database retrieval (renamed from TM)
+- ✅ Agent conversation logging with article/video ID
+- ✅ ContextBuilderPanel with tabbed UI
+- ✅ useMacRag React hook for state management
 
 ---
 
 ## 📋 Test User Credentials
 
-For future testing/development:
+For development/testing:
 
-| Email | Password | Role |
-|-------|----------|------|
-| admin-1@test.com | !12345678! | admin |
+| Email                 | Password   | Role       |
+| --------------------- | ---------- | ---------- |
+| admin-1@test.com      | !12345678! | admin      |
 | translator-1@test.com | !12345678! | translator |
-| reader-1@test.com | !12345678! | reader |
+| reader-1@test.com     | !12345678! | reader     |
 
 ---
 
 ## 🎯 Suggested Next Steps
 
-### Priority 1: Role-Based UI Features
+### Priority 1: Vector Embeddings for Retrieval
 
-**Implement role-specific views:**
+**Enhance bilingual matching with semantic similarity:**
 
 ```
-Follow @kendo-translation/development_guideline.md : Implement Role-Based UI
+Step 1: Generate embeddings for translation_memory entries
+- Use OpenAI/Voyage embeddings
+- Store in pgvector column
 
-Step 0: Preparation
-- Read @kendo-translation/project_description.md (§ User Roles)
-- Read @kendo-translation/docs/debug_progress.md (Phase 4 - Testing Results)
+Step 2: Update /api/context/retrieve
+- Query by embedding similarity
+- Combine with text matching
 
-Step 1: Update Navigation (AuthHeader)
-- Add role-based navigation items
-  * Admin: Show "Admin Panel" link
-  * Translator: Show "Translate Queue" link
-  * Reader: Hide translation features
-- Pattern: Use profile.role from /api/auth/me
-
-Step 2: Protected Routes Enhancement
-- Update middleware.ts to check role-based access
-  * /admin/* → admin only
-  * /translate/* → translator or admin
-  * /articles/* → all authenticated users
-- Redirect with proper error messages
-
-Step 3: Conditional Feature Rendering
-- Hide/disable features based on role in components
-  * BookmarkButton: all roles
-  * TranslationEditor: translator/admin only
-  * User management: admin only
-
-Step 4: Verify & Test
-- Test as each role (admin-1, translator-1, reader-1)
-- Verify unauthorized access attempts redirect properly
-- Update AI_MEMORY with role-based UI patterns
+Step 3: Test retrieval quality
+- Compare with current text matching
+- Measure relevance improvement
 ```
 
 ---
 
-### Priority 2: Video Bookmarking
+### Priority 2: Reading Progress Tracking
 
-**Complete video bookmark functionality:**
+**Track user progress through articles:**
 
 ```
-Follow @kendo-translation/development_guideline.md : Enable Video Bookmarking
+Step 1: Create reading_progress table
+- user_id, article_id, progress_percent, last_read
 
-Step 0: Preparation
-- Review @kendo-translation/packages/web/components/BookmarkButton.tsx
-- Review @kendo-translation/packages/web/app/bookmarks/page.tsx
+Step 2: Add progress indicator to article detail
+- Show "Continue reading" on article list
+- Auto-save scroll position
 
-Step 1: Add Bookmark Button to Video Detail Page
-- Update packages/web/app/videos/[id]/page.tsx
-- Import and use BookmarkButton component
-- Pass content_type="video", content_id=video.id
-
-Step 2: Test Video Bookmarking
-- Login as test user
-- Bookmark a video
-- Verify appears in /bookmarks with "videos" filter
-- Test unbookmark functionality
-
-Step 3: Verify & Summary
-- Test bookmark persistence across sessions
-- Update AI_MEMORY with video bookmark patterns
+Step 3: Dashboard integration
+- Show "Recently read" section
 ```
 
 ---
 
-### Priority 3: Real-Time Transcript (Future Enhancement)
+### Priority 3: YouTube Transcript Integration
 
-**Add YouTube transcript integration:**
+**Add transcript display and sync:**
 
 ```
-Step 0: Research
-- Study YouTube Transcript API options
-- Review @kendo-translation/scripts/download_youtube_transcripts.py
+Step 1: Fetch transcripts via YouTube API or yt-dlp
+- Store in video_transcripts table
+- Parse VTT/SRT format
 
-Step 1: Backend API
-- Create /api/videos/[id]/transcript endpoint
-- Fetch transcript from YouTube or stored DB
-- Return timestamped segments
+Step 2: Display in VideoPlayer component
+- Highlight current segment
+- Click to seek
 
-Step 2: Frontend Display
-- Add transcript panel to VideoPlayer component
-- Highlight transcript segment based on current time
-- Click transcript to jump to timestamp
-
-Step 3: Verify
-- Test with video _A38CHmgmM0
-- Verify auto-scroll and timestamp sync
+Step 3: Enable transcript search
+- Search across all video transcripts
 ```
 
 ---
 
-### Priority 4: Protected Routes Verification
+### Priority 4: Quality Scoring Enhancement
 
-**Comprehensive middleware testing:**
+**Implement detailed quality assessment:**
 
 ```
-Follow @kendo-translation/development_guideline.md : Test Protected Routes
+Step 1: Extend MAC-RAG score phase
+- Fluency, adequacy, terminology, style scores
+- Issue detection and suggestions
 
-Step 0: Preparation
-- Read @kendo-translation/packages/web/middleware.ts
+Step 2: Quality routing
+- Auto-flag low-quality translations
+- Suggest review workflow
 
-Step 1: Create Test Script
-- Test unauthenticated access to protected routes
-- Test role-based restrictions (admin-only routes)
-- Verify redirect behavior with redirectTo param
-
-Step 2: Document Results
-- List all protected routes and their access rules
-- Update docs/TESTING.md with protection matrix
-
-Step 3: Verify & Summary
-- Run automated tests
-- Document any gaps in protection
-- Suggest improvements to middleware
+Step 3: Error tracking
+- Integrate Sentry for production errors
 ```
 
 ---
 
 ## 📊 Current Project Status
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Authentication | ✅ Working | Server-side API routes |
-| User Roles | ✅ Working | 3 roles with proper RLS |
-| Articles CRUD | ✅ Working | Full functionality |
-| Videos + Notes | ✅ Working | E2E tested |
-| Bookmarks | ✅ Working | Articles only (videos pending) |
-| Terminology | ✅ Working | Search and pagination |
-| Dark Mode | ✅ Working | All pages |
-| Role-Based UI | ⏳ Pending | Next priority |
-| Video Transcripts | ⏳ Not Started | Future enhancement |
-
----
-
-## 🔗 Key Files Modified in This Session
-
-**API Routes:**
-- `app/api/auth/me/route.ts` - Current user endpoint
-- `app/api/auth/logout/route.ts` - Logout endpoint
-- `app/api/video-notes/route.ts` - Fixed user_id handling
-
-**Components:**
-- `components/AuthHeader.tsx` - Refactored to API routes
-
-**Documentation:**
-- `docs/debug_progress.md` - Phase 4 results
-- `docs/ai_docs/AI_MEMORY_short_term-testing.md` - Patterns
-
-**Test Scripts:**
-- `packages/web/scripts/test-logins.js` - Login verification
-- `packages/web/scripts/test-video-features.js` - Video E2E
-- Plus 7 more supporting scripts
+| Component         | Status     | Notes                        |
+| ----------------- | ---------- | ---------------------------- |
+| Authentication    | ✅ Working | 3 roles with RLS             |
+| Articles CRUD     | ✅ Working | 634 articles                 |
+| Videos + Notes    | ✅ Working | E2E tested                   |
+| Bookmarks         | ✅ Working | Articles + videos            |
+| Terminology       | ✅ Working | 920+ terms                   |
+| Dark Mode         | ✅ Working | All pages                    |
+| MAC-RAG Pipeline  | ✅ Working | Context + translation + logs |
+| Role-Based UI     | ✅ Working | Dynamic navigation           |
+| Vector Embeddings | ⏳ Pending | Priority 1                   |
+| Reading Progress  | ⏳ Pending | Priority 2                   |
+| Video Transcripts | ⏳ Pending | Priority 3                   |
 
 ---
 
@@ -212,14 +143,10 @@ Step 3: Verify & Summary
 
 3. **user_id Injection**: For RLS-protected tables, always inject `user_id` from session in API routes.
 
-4. **Testing Pattern**: Use Node.js scripts for API-level E2E testing when browser automation is rate-limited.
+4. **Agent Logging**: Propagate metadata (articleId, videoId) through entire call chain for proper log association.
+
+5. **Stats Calculation**: Calculate stats from fetched data, not in-memory storage (important for serverless).
 
 ---
 
-**Commit**: `525d58b` - feat: comprehensive testing session - user roles and video features
-
-**Next Session**: Start with Priority 1 (Role-Based UI Features)
-
----
-
-*Generated: December 31, 2025*
+_Last Updated: January 12, 2025_

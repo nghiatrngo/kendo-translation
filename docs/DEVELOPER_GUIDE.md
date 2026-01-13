@@ -3,6 +3,7 @@
 This guide helps developers set up, understand, and contribute to the Kendo Translation project.
 
 ## Table of Contents
+
 1. [Project Structure](#1-project-structure)
 2. [Environment Setup](#2-environment-setup)
 3. [Development Workflow](#3-development-workflow)
@@ -19,23 +20,29 @@ kendo-translation/
 │   ├── app/                # App Router pages
 │   │   ├── api/            # API routes
 │   │   │   ├── articles/   # Article CRUD
-│   │   │   ├── translate/  # AI translation
+│   │   │   ├── translate/  # AI translation + MAC-RAG
+│   │   │   ├── context/    # Retrieval (bilingual + terms)
+│   │   │   ├── agent/      # Agent logs
 │   │   │   └── tm/         # Translation Memory
 │   │   ├── articles/       # Article pages
 │   │   ├── dashboard/      # Stats dashboard
 │   │   ├── terminology/    # Term search
-│   │   ├── translate/      # Translation editor
+│   │   ├── translate/      # Translation editors
+│   │   │   ├── [id]/       # Basic editor
+│   │   │   └── mac-rag/    # MAC-RAG pipeline
 │   │   └── videos/         # Video player
 │   ├── components/         # React components
+│   │   ├── translation/    # ContextBuilderPanel, etc.
 │   │   ├── TranslationEditor.tsx
-│   │   ├── ThemeProvider.tsx
-│   │   └── ErrorBoundary.tsx
-│   ├── hooks/              # Custom React hooks
-│   │   └── useKeyboardShortcuts.tsx
+│   │   ├── AgentConversationLog.tsx
+│   │   ├── RoleBasedNavigation.tsx
+│   │   └── ThemeProvider.tsx
 │   ├── lib/                # Utilities
-│   │   ├── llm/            # LLM provider
-│   │   ├── agents/         # JA-EN specialist
-│   │   ├── supabase/       # DB client
+│   │   ├── llm/            # LLM provider + agent-logger
+│   │   ├── agents/         # JA-EN specialist + prompts
+│   │   ├── translation/    # multi-gen.ts
+│   │   ├── hooks/          # useMacRag.ts
+│   │   ├── supabase/       # DB client + middleware
 │   │   └── data/           # Static data (onomatopoeia)
 │   └── types/              # TypeScript types
 ├── docs/                   # Documentation
@@ -53,6 +60,7 @@ kendo-translation/
 ## 2. Environment Setup
 
 ### Prerequisites
+
 - Node.js 18+
 - npm or yarn
 - Supabase account
@@ -126,7 +134,7 @@ npm run lint
 
 1. Create folder in `app/your-feature/`
 2. Add `page.tsx` with component
-3. Add link to `layout.tsx` navigation
+3. Add link to `RoleBasedNavigation.tsx`
 
 ### New API Route
 
@@ -138,33 +146,50 @@ npm run lint
 
 ```typescript
 // app/api/example/route.ts
-import { createClient } from '@supabase/supabase-js';
-import { NextResponse } from 'next/server';
+import { createClient } from "@/lib/supabase/server";
+import { NextResponse } from "next/server";
 
 export async function GET() {
-    const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+  const supabase = await createClient();
 
-    const { data, error } = await supabase
-        .from('your_table')
-        .select('*');
+  const { data, error } = await supabase.from("your_table").select("*");
 
-    if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
-    return NextResponse.json(data);
+  return NextResponse.json(data);
+}
+```
+
+### MAC-RAG Integration
+
+```typescript
+// Use the useMacRag hook in components
+import { useMacRag } from "@/lib/hooks/useMacRag";
+
+function TranslationPage() {
+  const macRag = useMacRag();
+
+  // Build context first
+  await macRag.buildContext(sourceText);
+
+  // Then translate with articleId for logging
+  await macRag.translate({
+    approaches: ["natural"],
+    articleId: articleId,
+  });
 }
 ```
 
 ### Component Patterns
 
 Follow existing patterns:
+
 - Use ThemeProvider for dark mode
 - Use ErrorBoundary for error handling
 - Use hooks for keyboard shortcuts
+- Use RoleBasedNavigation for role-specific UI
 
 ---
 
@@ -197,35 +222,40 @@ npm start
 
 ## Code Patterns
 
-### Supabase Client
+### Supabase Server Client
 
 ```typescript
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@/lib/supabase/server";
 
-const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = await createClient();
+const { data, error } = await supabase.from("table").select("*");
 ```
 
-### LLM Provider
+### LLM Provider with Logging
 
 ```typescript
-import { agentChat } from '@/lib/llm/provider';
+import { agentChat } from "@/lib/llm/provider";
 
-const response = await agentChat('translation', [
-    { role: 'user', content: 'Translate: 剣道' }
-]);
+const response = await agentChat(
+  "translation",
+  [{ role: "user", content: "Translate: 剣道" }],
+  {
+    temperature: 0.3,
+    articleId: "uuid-of-article", // For logging
+  }
+);
 ```
 
 ### Dark Mode
 
 ```typescript
-import { useTheme } from '@/components/ThemeProvider';
+import { useTheme } from "@/components/ThemeProvider";
 
 const { theme, setTheme, resolvedTheme } = useTheme();
 ```
 
 ---
 
-*Questions? Open an issue on [GitHub](https://github.com/nghiatrngo/kendo-translation)*
+_Questions? Open an issue on [GitHub](https://github.com/nghiatrngo/kendo-translation)_
+
+_Last Updated: January 12, 2025_

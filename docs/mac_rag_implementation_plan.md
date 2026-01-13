@@ -1,6 +1,7 @@
 # MAC-RAG Translation System: Implementation Plan
 
-**Version 1.0 | December 2025**
+**Version 1.0 | December 2024**  
+**Status**: ✅ Implemented (January 2025)
 
 ---
 
@@ -34,19 +35,20 @@ This document outlines a breadth-first implementation plan for the MAC-RAG (Mult
 
 Analyze source text to establish baseline understanding before retrieval.
 
-| Component | Description | Output |
-|-----------|-------------|--------|
-| **Semantic Analyzer** | Initial analysis of source text | Key concepts, entities, domain indicators |
-| **Domain Classifier** | Determine content domain | Domain tag (legal, medical, technical, kendo) |
-| **Style Detector** | Identify formality and tone | Style profile (formal/casual, audience) |
-| **TM Loader** | Load relevant translation memories | Active TM context |
+| Component             | Description                        | Output                                        |
+| --------------------- | ---------------------------------- | --------------------------------------------- |
+| **Semantic Analyzer** | Initial analysis of source text    | Key concepts, entities, domain indicators     |
+| **Domain Classifier** | Determine content domain           | Domain tag (legal, medical, technical, kendo) |
+| **Style Detector**    | Identify formality and tone        | Style profile (formal/casual, audience)       |
+| **TM Loader**         | Load relevant translation memories | Active TM context                             |
 
 **Context Object Structure:**
+
 ```typescript
 interface ContextObject {
   sourceText: string;
-  sourceLang: 'ja' | 'en';
-  targetLang: 'ja' | 'en';
+  sourceLang: "ja" | "en";
+  targetLang: "ja" | "en";
   domain: DomainClassification;
   style: StyleProfile;
   entities: Entity[];
@@ -59,20 +61,21 @@ interface ContextObject {
 
 Retrieve relevant context from multiple sources.
 
-| Source | Query Method | Relevancy Threshold |
-|--------|--------------|---------------------|
-| **Translation Memory** | Semantic + BM25 hybrid | ≥70% fuzzy match |
-| **Terminology Database** | Exact + fuzzy term match | ≥80% confidence |
-| **Domain Corpus** | Semantic similarity | ≥60% relevance |
-| **Cross-Lingual KB** | Entity-based lookup | Direct match |
+| Source                   | Query Method             | Relevancy Threshold |
+| ------------------------ | ------------------------ | ------------------- |
+| **Translation Memory**   | Semantic + BM25 hybrid   | ≥70% fuzzy match    |
+| **Terminology Database** | Exact + fuzzy term match | ≥80% confidence     |
+| **Domain Corpus**        | Semantic similarity      | ≥60% relevance      |
+| **Cross-Lingual KB**     | Entity-based lookup      | Direct match        |
 
 **Retrieval Results Structure:**
+
 ```typescript
 interface RetrievalResults {
-  tmMatches: TMMatch[];           // Previous translations
-  terminology: TermEntry[];       // Required terms
+  tmMatches: TMMatch[]; // Previous translations
+  terminology: TermEntry[]; // Required terms
   corpusExamples: CorpusExample[]; // Domain examples
-  crossLingualRefs: Reference[];  // Wikipedia/Wikidata links
+  crossLingualRefs: Reference[]; // Wikipedia/Wikidata links
   coverageReport: CoverageReport; // What's covered/missing
 }
 ```
@@ -146,6 +149,7 @@ Retrieved Segments (JA + EN)
 ```
 
 **User Actions:**
+
 - ✅ Add/remove TM matches from context
 - ✅ Edit terminology mappings
 - ✅ Add custom terms to constraints
@@ -162,6 +166,7 @@ Retrieved Segments (JA + EN)
 Generate translation using synthesized multilingual context.
 
 **Prompt Template:**
+
 ```
 SYSTEM: You are an expert {domain} translator for {source_lang} to {target_lang}.
 Register: {formality_level}
@@ -194,6 +199,7 @@ TRANSLATION:
 | Candidate C | Formal | Business, legal |
 
 **Translation UI:**
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                        TRANSLATION CANDIDATES                               │
@@ -236,14 +242,15 @@ TRANSLATION:
 
 Evaluate translation quality using automated metrics.
 
-| Metric | Description | Weight |
-|--------|-------------|--------|
-| **Fluency Score** | Natural reading in target language | 0.30 |
-| **Adequacy Score** | Meaning preservation from source | 0.35 |
-| **Terminology Compliance** | Required terms used correctly | 0.20 |
-| **Style Consistency** | Matches requested formality/tone | 0.15 |
+| Metric                     | Description                        | Weight |
+| -------------------------- | ---------------------------------- | ------ |
+| **Fluency Score**          | Natural reading in target language | 0.30   |
+| **Adequacy Score**         | Meaning preservation from source   | 0.35   |
+| **Terminology Compliance** | Required terms used correctly      | 0.20   |
+| **Style Consistency**      | Matches requested formality/tone   | 0.15   |
 
 **LLM-Assisted Scoring:**
+
 ```
 SYSTEM: You are a translation quality evaluator.
 
@@ -327,6 +334,7 @@ Provide:
 ```
 
 **User Decisions:**
+
 - ☑ Save translation pair to TM (with quality score)
 - ☑ Add new terms to terminology database
 - ☑ Record which context was helpful (improves future retrieval)
@@ -342,16 +350,16 @@ Implement the system in horizontal layers, ensuring each phase has basic functio
 
 ```
                     BREADTH-FIRST IMPLEMENTATION
-                    
+
 Layer 1: ████████████████████████████████████████  Core Pipeline
          [Pre-Trans Basic] [Trans Basic] [Post Basic]
-         
+
 Layer 2: ████████████████████████████████████████  UI & User Control
          [Context Panel]   [Candidates]  [DB Update Panel]
-         
+
 Layer 3: ████████████████████████████████████████  RAG Enhancement
          [TM + Terms]      [Multi-Gen]   [Quality Metrics]
-         
+
 Layer 4: ████████████████████████████████████████  Advanced Features
          [Gap Detection]   [JA-EN Agent] [Learning Loop]
 ```
@@ -362,14 +370,14 @@ Layer 4: ███████████████████████�
 
 **Goal:** End-to-end translation flow with minimal features.
 
-| Step | Task | Files | Priority |
-|------|------|-------|----------|
-| 1.1 | Create basic context object from source text | `lib/context/context-builder.ts` | HIGH |
-| 1.2 | Simple domain/style detection (rule-based) | `lib/context/analyzers.ts` | HIGH |
-| 1.3 | Basic TM lookup (exact match only) | `app/api/context/tm/route.ts` | HIGH |
-| 1.4 | LLM translation with static prompt | `app/api/translate/route.ts` | HIGH |
-| 1.5 | Simple quality score (LLM-based) | `lib/quality/scorer.ts` | HIGH |
-| 1.6 | Basic save to TM | `app/api/memory/save/route.ts` | HIGH |
+| Step | Task                                         | Files                            | Priority |
+| ---- | -------------------------------------------- | -------------------------------- | -------- |
+| 1.1  | Create basic context object from source text | `lib/context/context-builder.ts` | HIGH     |
+| 1.2  | Simple domain/style detection (rule-based)   | `lib/context/analyzers.ts`       | HIGH     |
+| 1.3  | Basic TM lookup (exact match only)           | `app/api/context/tm/route.ts`    | HIGH     |
+| 1.4  | LLM translation with static prompt           | `app/api/translate/route.ts`     | HIGH     |
+| 1.5  | Simple quality score (LLM-based)             | `lib/quality/scorer.ts`          | HIGH     |
+| 1.6  | Basic save to TM                             | `app/api/memory/save/route.ts`   | HIGH     |
 
 **Deliverable:** User can input text → get translation → save to TM.
 
@@ -379,14 +387,14 @@ Layer 4: ███████████████████████�
 
 **Goal:** User can see and edit context, select candidates, control DB updates.
 
-| Step | Task | Files | Priority |
-|------|------|-------|----------|
-| 2.1 | Context Builder Panel component | `components/ContextBuilderPanel.tsx` | HIGH |
-| 2.2 | TM matches display with add/remove | `components/context/TMMatchList.tsx` | HIGH |
-| 2.3 | Terminology editor component | `components/context/TerminologyEditor.tsx` | HIGH |
-| 2.4 | Translation candidates display | `components/TranslationCandidates.tsx` | HIGH |
-| 2.5 | Post-translation panel with checkboxes | `components/PostTranslationPanel.tsx` | HIGH |
-| 2.6 | Quality score visualization | `components/QualityScoreDisplay.tsx` | MEDIUM |
+| Step | Task                                   | Files                                      | Priority |
+| ---- | -------------------------------------- | ------------------------------------------ | -------- |
+| 2.1  | Context Builder Panel component        | `components/ContextBuilderPanel.tsx`       | HIGH     |
+| 2.2  | TM matches display with add/remove     | `components/context/TMMatchList.tsx`       | HIGH     |
+| 2.3  | Terminology editor component           | `components/context/TerminologyEditor.tsx` | HIGH     |
+| 2.4  | Translation candidates display         | `components/TranslationCandidates.tsx`     | HIGH     |
+| 2.5  | Post-translation panel with checkboxes | `components/PostTranslationPanel.tsx`      | HIGH     |
+| 2.6  | Quality score visualization            | `components/QualityScoreDisplay.tsx`       | MEDIUM   |
 
 **Deliverable:** Full 3-panel UI workflow.
 
@@ -396,14 +404,14 @@ Layer 4: ███████████████████████�
 
 **Goal:** Rich context retrieval and multi-candidate generation.
 
-| Step | Task | Files | Priority |
-|------|------|-------|----------|
-| 3.1 | Fuzzy TM matching (semantic similarity) | `lib/retrieval/tm-search.ts` | HIGH |
-| 3.2 | Terminology DB integration | `lib/retrieval/terminology.ts` | HIGH |
-| 3.3 | Domain corpus retrieval | `lib/retrieval/corpus.ts` | MEDIUM |
-| 3.4 | Context pairing/weighting logic | `lib/context/context-pairer.ts` | HIGH |
-| 3.5 | Multi-candidate generation (3 styles) | `lib/translation/multi-gen.ts` | MEDIUM |
-| 3.6 | Detailed quality metrics (4 dimensions) | `lib/quality/detailed-scorer.ts` | MEDIUM |
+| Step | Task                                    | Files                            | Priority |
+| ---- | --------------------------------------- | -------------------------------- | -------- |
+| 3.1  | Fuzzy TM matching (semantic similarity) | `lib/retrieval/tm-search.ts`     | HIGH     |
+| 3.2  | Terminology DB integration              | `lib/retrieval/terminology.ts`   | HIGH     |
+| 3.3  | Domain corpus retrieval                 | `lib/retrieval/corpus.ts`        | MEDIUM   |
+| 3.4  | Context pairing/weighting logic         | `lib/context/context-pairer.ts`  | HIGH     |
+| 3.5  | Multi-candidate generation (3 styles)   | `lib/translation/multi-gen.ts`   | MEDIUM   |
+| 3.6  | Detailed quality metrics (4 dimensions) | `lib/quality/detailed-scorer.ts` | MEDIUM   |
 
 **Deliverable:** Smart retrieval + multiple translation options.
 
@@ -413,14 +421,14 @@ Layer 4: ███████████████████████�
 
 **Goal:** Japanese-specific handling, learning loop, gap detection.
 
-| Step | Task | Files | Priority |
-|------|------|-------|----------|
-| 4.1 | Coverage gap detection | `lib/context/gap-detector.ts` | MEDIUM |
-| 4.2 | JA→EN subject inference | `lib/agents/ja-en-agent.ts` | HIGH |
-| 4.3 | Honorific/keigo handling | `lib/agents/honorific-handler.ts` | MEDIUM |
-| 4.4 | Context usefulness tracking | `lib/learning/context-feedback.ts` | LOW |
-| 4.5 | Quality threshold routing | `lib/quality/routing.ts` | LOW |
-| 4.6 | Preset context saving/loading | `lib/context/presets.ts` | LOW |
+| Step | Task                          | Files                              | Priority |
+| ---- | ----------------------------- | ---------------------------------- | -------- |
+| 4.1  | Coverage gap detection        | `lib/context/gap-detector.ts`      | MEDIUM   |
+| 4.2  | JA→EN subject inference       | `lib/agents/ja-en-agent.ts`        | HIGH     |
+| 4.3  | Honorific/keigo handling      | `lib/agents/honorific-handler.ts`  | MEDIUM   |
+| 4.4  | Context usefulness tracking   | `lib/learning/context-feedback.ts` | LOW      |
+| 4.5  | Quality threshold routing     | `lib/quality/routing.ts`           | LOW      |
+| 4.6  | Preset context saving/loading | `lib/context/presets.ts`           | LOW      |
 
 **Deliverable:** Production-ready translation system.
 
@@ -479,24 +487,23 @@ packages/web/
 
 ## Success Criteria
 
-| Phase | Metric | Target |
-|-------|--------|--------|
-| Pre-Translation | Context build time | < 3 seconds |
-| Pre-Translation | User can edit all context elements | 100% coverage |
-| Translation | Candidate generation time | < 10 seconds |
-| Translation | User can select/edit any candidate | Yes |
-| Post-Translation | Quality score accuracy (vs human) | > 0.8 correlation |
-| Post-Translation | User controls all DB updates | 100% user choice |
-| Overall | End-to-end translation time | < 30 seconds |
+| Phase            | Metric                             | Target            |
+| ---------------- | ---------------------------------- | ----------------- |
+| Pre-Translation  | Context build time                 | < 3 seconds       |
+| Pre-Translation  | User can edit all context elements | 100% coverage     |
+| Translation      | Candidate generation time          | < 10 seconds      |
+| Translation      | User can select/edit any candidate | Yes               |
+| Post-Translation | Quality score accuracy (vs human)  | > 0.8 correlation |
+| Post-Translation | User controls all DB updates       | 100% user choice  |
+| Overall          | End-to-end translation time        | < 30 seconds      |
 
 ---
 
 ## Timeline Summary
 
-| Week | Focus | Deliverable |
-|------|-------|-------------|
-| 1-2 | Layer 1: Core Pipeline | Basic end-to-end flow |
-| 3-4 | Layer 2: UI & Control | Full 3-panel interface |
-| 5-6 | Layer 3: RAG Enhancement | Smart retrieval + multi-gen |
-| 7-8 | Layer 4: Advanced | JA-EN agent + learning loop |
-
+| Week | Focus                    | Deliverable                 |
+| ---- | ------------------------ | --------------------------- |
+| 1-2  | Layer 1: Core Pipeline   | Basic end-to-end flow       |
+| 3-4  | Layer 2: UI & Control    | Full 3-panel interface      |
+| 5-6  | Layer 3: RAG Enhancement | Smart retrieval + multi-gen |
+| 7-8  | Layer 4: Advanced        | JA-EN agent + learning loop |
