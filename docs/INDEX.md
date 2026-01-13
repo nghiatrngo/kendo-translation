@@ -2,17 +2,18 @@
 
 ## Quick Links
 
-| Document                              | Purpose                       |
-| ------------------------------------- | ----------------------------- |
-| [README](../README.md)                | Project overview, quick start |
-| [API Reference](API.md)               | Endpoint documentation        |
-| [Architecture](ARCHITECTURE.md)       | System design, tech stack     |
-| [User Tutorial](USER_TUTORIAL.md)     | How to use the platform       |
-| [Developer Guide](DEVELOPER_GUIDE.md) | Setup and contribution        |
-| [Deployment](DEPLOYMENT.md)           | Production deployment         |
-| [Testing](TESTING.md)                 | Testing strategy              |
-| [Changelog](CHANGELOG.md)             | Version history               |
-| [Next Steps](NEXT_STEPS.md)           | Roadmap and priorities        |
+| Document                                              | Purpose                       |
+| ----------------------------------------------------- | ----------------------------- |
+| [README](../README.md)                                | Project overview, quick start |
+| [API Reference](API.md)                               | Endpoint documentation        |
+| [Architecture](ARCHITECTURE.md)                       | System design, tech stack     |
+| [User Tutorial](USER_TUTORIAL.md)                     | How to use the platform       |
+| [Developer Guide](DEVELOPER_GUIDE.md)                 | Setup and contribution        |
+| [Deployment](DEPLOYMENT.md)                           | Production deployment         |
+| [Testing](TESTING.md)                                 | Testing strategy              |
+| [Changelog](CHANGELOG.md)                             | Version history               |
+| [Next Steps](NEXT_STEPS.md)                           | Roadmap and priorities        |
+| [Documentation Guideline](DOCUMENTATION_GUIDELINE.md) | How to maintain docs          |
 
 ---
 
