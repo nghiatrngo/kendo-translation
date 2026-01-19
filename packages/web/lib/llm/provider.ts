@@ -98,7 +98,7 @@ class OpenRouterProvider implements LLMProvider {
     private baseUrl: string;
 
     constructor() {
-        this.apiKey = process.env.OPENROUTER_API_KEY || "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";
+        this.apiKey = process.env.OPENROUTER_API_KEY || "";
         this.baseUrl = process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1";
     }
 
