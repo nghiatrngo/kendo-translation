@@ -14,6 +14,7 @@ Step 0: Preparation & Environment Check
   * Reader: reader-1@test.com / !12345678!
 
 Step 1: Test Admin Role (admin-1@test.com)
+- Navigate to root (/) -> Verify redirect to /login
 - Login as admin
 - Verify navigation shows: Dashboard, Articles, Videos, Terminology, Bookmarks, Translate, Admin
 - Test Admin Panel (/admin):
@@ -423,7 +424,7 @@ Step 5: Completion & Verification
 Step 6: Session Cleanup
 - From wherever you are, click on "Logout" in the header
 - Wait for redirect to login page
-- Screenshot the logged-out state
+- Screenshot the login page (root is now protected)
 - Compile final test report
 
 Step 7: Document Results

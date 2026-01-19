@@ -37,19 +37,12 @@ export async function updateSession(request: NextRequest) {
 
     const pathname = request.nextUrl.pathname
 
-    // Routes that require authentication
-    const authRequiredPaths = ['/translate', '/dashboard', '/admin', '/bookmarks']
-    const isAuthRequired = authRequiredPaths.some(path => pathname.startsWith(path))
-
-    // Routes that require specific roles
-    const adminOnlyPaths = ['/admin']
-    const translatorPaths = ['/translate']
-
-    const isAdminOnly = adminOnlyPaths.some(path => pathname.startsWith(path))
-    const isTranslatorRequired = translatorPaths.some(path => pathname.startsWith(path))
+    // Public paths that don't require authentication
+    const publicPaths = ['/login', '/auth', '/api/auth']
+    const isPublicPath = publicPaths.some(path => pathname.startsWith(path))
 
     // Redirect unauthenticated users to login
-    if (!user && isAuthRequired) {
+    if (!user && !isPublicPath) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
         url.searchParams.set('redirectTo', pathname)
@@ -57,7 +50,7 @@ export async function updateSession(request: NextRequest) {
     }
 
     // Role-based access control
-    if (user && (isAdminOnly || isTranslatorRequired)) {
+    if (user) {
         // Fetch user's profile to get role
         const { data: profile } = await supabase
             .from('profiles')
@@ -66,6 +59,10 @@ export async function updateSession(request: NextRequest) {
             .single()
 
         const userRole = profile?.role || 'reader'
+
+        // Routes that require specific roles
+        const isAdminOnly = pathname.startsWith('/admin')
+        const isTranslatorRequired = pathname.startsWith('/translate')
 
         // Admin-only routes
         if (isAdminOnly && userRole !== 'admin') {
