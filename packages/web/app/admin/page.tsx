@@ -37,87 +37,89 @@ export default function AdminPage() {
 
     useEffect(() => {
         const checkAdminAndFetch = async () => {
-            // Check if current user is admin
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) {
-                router.push('/login');
-                return;
-            }
+            try {
+                // Check auth and role via API
+                const authRes = await fetch('/api/auth/me');
+                if (!authRes.ok) {
+                    router.push('/login');
+                    return;
+                }
+                
+                const authData = await authRes.json();
+                if (!authData.profile || authData.profile.role !== 'admin') {
+                    router.push('/dashboard');
+                    return;
+                }
 
-            const { data: currentProfile } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', session.user.id)
-                .single();
+                setIsAdmin(true);
 
-            if (!currentProfile || currentProfile.role !== 'admin') {
-                router.push('/dashboard');
-                return;
-            }
-
-            setIsAdmin(true);
-
-            // Fetch all profiles
-            const { data: profilesData } = await supabase
-                .from('profiles')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (profilesData) {
-                // Get user emails from auth
-                const profilesWithEmail = await Promise.all(
-                    profilesData.map(async (profile) => {
-                        return {
+                // Fetch all profiles via API
+                const usersRes = await fetch('/api/admin/users');
+                if (usersRes.ok) {
+                    const { profiles: profilesData } = await usersRes.json();
+                    
+                    if (profilesData) {
+                        const profilesWithEmail = profilesData.map((profile: any) => ({
                             ...profile,
-                            email: profile.id // We'll show ID if we can't get email
-                        };
-                    })
-                );
-                setProfiles(profilesWithEmail);
+                            email: profile.email || profile.id // Fallback
+                        }));
+                        setProfiles(profilesWithEmail);
 
-                // Calculate stats
-                setStats({
-                    totalUsers: profilesWithEmail.length,
-                    admins: profilesWithEmail.filter(p => p.role === 'admin').length,
-                    translators: profilesWithEmail.filter(p => p.role === 'translator').length,
-                    readers: profilesWithEmail.filter(p => p.role === 'reader').length,
-                    articles: 0,
-                    translations: 0,
-                });
+                        // Calculate stats
+                        setStats({
+                            totalUsers: profilesWithEmail.length,
+                            admins: profilesWithEmail.filter((p: any) => p.role === 'admin').length,
+                            translators: profilesWithEmail.filter((p: any) => p.role === 'translator').length,
+                            readers: profilesWithEmail.filter((p: any) => p.role === 'reader').length,
+                            articles: 0,
+                            translations: 0,
+                        });
+                    }
+                }
+
+                // Fetch article stats (assuming public read access or readable by auth users)
+                // We keep using supabase client for this if RLS allows it.
+                // If it hangs, we might need an API for this too.
+                const { count: articleCount } = await supabase
+                    .from('articles')
+                    .select('*', { count: 'exact', head: true });
+
+                const { count: translatedCount } = await supabase
+                    .from('articles')
+                    .select('*', { count: 'exact', head: true })
+                    .not('content_en', 'is', null);
+
+                setStats(prev => ({
+                    ...prev,
+                    articles: articleCount || 0,
+                    translations: translatedCount || 0,
+                }));
+
+            } catch (error) {
+                console.error('Error fetching admin data:', error);
+            } finally {
+                setLoading(false);
             }
-
-            // Fetch article stats
-            const { count: articleCount } = await supabase
-                .from('articles')
-                .select('*', { count: 'exact', head: true });
-
-            const { count: translatedCount } = await supabase
-                .from('articles')
-                .select('*', { count: 'exact', head: true })
-                .not('content_en', 'is', null);
-
-            setStats(prev => ({
-                ...prev,
-                articles: articleCount || 0,
-                translations: translatedCount || 0,
-            }));
-
-            setLoading(false);
         };
 
         checkAdminAndFetch();
     }, [supabase, router]);
 
     const updateUserRole = async (userId: string, newRole: 'admin' | 'translator' | 'reader') => {
-        const { error } = await supabase
-            .from('profiles')
-            .update({ role: newRole })
-            .eq('id', userId);
+        try {
+            const res = await fetch('/api/admin/update-role', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, role: newRole }),
+            });
 
-        if (error) {
-            console.error('Error updating role:', error);
-            alert('Failed to update role');
-        } else {
+            if (!res.ok) {
+                const data = await res.json();
+                console.error('Error updating role:', data.error);
+                alert('Failed to update role');
+                return;
+            }
+
             setProfiles(prev =>
                 prev.map(p => p.id === userId ? { ...p, role: newRole } : p)
             );
@@ -132,6 +134,9 @@ export default function AdminPage() {
                     readers: newProfiles.filter(p => p.role === 'reader').length,
                 };
             });
+        } catch (error) {
+            console.error('Error calling update role API:', error);
+            alert('Failed to update role');
         }
     };
 

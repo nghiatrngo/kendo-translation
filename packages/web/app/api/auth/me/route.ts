@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
@@ -10,7 +10,8 @@ export async function GET() {
             return NextResponse.json({ user: null, profile: null })
         }
 
-        const { data: profile, error: profileError } = await supabase
+        const adminSupabase = createAdminClient()
+        const { data: profile, error: profileError } = await adminSupabase
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
