@@ -30,7 +30,20 @@ function LoginForm() {
                 body: JSON.stringify({ email, password }),
             })
 
-            const data = await response.json()
+            let data
+            const contentType = response.headers.get('content-type')
+            if (contentType && contentType.includes('application/json')) {
+                data = await response.json()
+            } else {
+                // If response is not JSON (e.g. 404 HTML from stale deploy), throw specific error
+                const text = await response.text()
+                console.error('Unexpected non-JSON response:', text.substring(0, 100))
+                throw new Error(
+                    response.status === 404 
+                        ? 'Login service not found. The application might be updating.' 
+                        : 'Server error. Please try again later.'
+                )
+            }
 
             if (!response.ok) {
                 throw new Error(data.error || 'Authentication failed')
@@ -41,6 +54,7 @@ function LoginForm() {
             router.push(redirectTo)
             router.refresh()
         } catch (err) {
+            console.error('Login error:', err)
             setError(err instanceof Error ? err.message : 'An error occurred')
         } finally {
             setLoading(false)
