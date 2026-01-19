@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { BookmarkButton } from '@/components/BookmarkButton'
+import { ArticleHistoryTracker } from '@/components/ArticleHistoryTracker'
 
 interface PageProps {
     params: Promise<{ id: string }>
@@ -138,6 +139,8 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                     <span>Quality: {(article.quality_score * 100).toFixed(0)}%</span>
                 )}
             </div>
+            
+            <ArticleHistoryTracker id={article.id} title={article.title} />
         </div>
     )
 }

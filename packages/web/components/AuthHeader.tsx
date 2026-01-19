@@ -69,10 +69,18 @@ export function AuthHeader() {
                     </span>
                 )}
 
-                {/* User Email */}
-                <span className="text-sm text-gray-600 dark:text-gray-300 hidden md:inline">
-                    {profile.username || (profile.email ? profile.email.split('@')[0] : 'User')}
-                </span>
+                {/* User Profile Link */}
+                <Link 
+                    href="/profile"
+                    className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 flex items-center gap-2"
+                >
+                    <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center text-blue-700 dark:text-blue-300">
+                        {profile.username ? profile.username[0].toUpperCase() : (profile.email ? profile.email[0].toUpperCase() : 'U')}
+                    </div>
+                    <span className="hidden md:inline">
+                        {profile.username || (profile.email ? profile.email.split('@')[0] : 'User')}
+                    </span>
+                </Link>
 
                 {/* Admin Link */}
                 {profile.role === 'admin' && (

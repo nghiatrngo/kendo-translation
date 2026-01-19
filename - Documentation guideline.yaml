@@ -1,0 +1,13 @@
+- Documentation guideline
+
+- Disable login:
+
+
+- Books: Section -> Chapter -> Page
+    - Chapter navigation
+    - Page navigation
+
+- Hierarchical data:
+    - Main Categories: Book, Article, Video
+    - Sub Categories: Sentences
+    - SubSub Categories: Phrases

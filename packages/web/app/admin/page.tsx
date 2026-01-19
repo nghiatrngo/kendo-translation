@@ -16,6 +16,10 @@ export default function AdminPage() {
     const [profiles, setProfiles] = useState<Profile[]>([]);
     const [loading, setLoading] = useState(true);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [showAddUserModal, setShowAddUserModal] = useState(false);
+    const [newUser, setNewUser] = useState({ email: '', password: '', role: 'reader' as const });
+    const [creating, setCreating] = useState(false);
+    
     const [stats, setStats] = useState({
         totalUsers: 0,
         admins: 0,
@@ -162,6 +166,21 @@ export default function AdminPage() {
                 <StatCard label="Articles" value={stats.articles} color="orange" />
                 <StatCard label="Translated" value={stats.translations} color="teal" />
             </div>
+
+            {/* Actions Bar */}
+            <div className="flex justify-end mb-6">
+                <button
+                    onClick={() => setShowAddUserModal(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add User
+                </button>
+            </div>
+
+            {/* Stats Cards */}
 
             {/* User Management Table */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">

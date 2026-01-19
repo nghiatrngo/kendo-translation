@@ -78,6 +78,28 @@ export default function VideosPage() {
         fetchNotes();
     }, [selectedVideo]);
 
+    // Record history when video is selected
+    useEffect(() => {
+        if (!selectedVideo) return;
+
+        const recordHistory = async () => {
+             try {
+                await fetch('/api/history/record', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        item_type: 'video',
+                        item_id: selectedVideo.id,
+                        item_title: selectedVideo.title
+                    })
+                });
+            } catch (error) {
+                console.error('Failed to record video history', error);
+            }
+        };
+        recordHistory();
+    }, [selectedVideo]);
+
     const handleTimeUpdate = useCallback((time: number) => {
         setCurrentTime(time);
     }, []);
@@ -127,18 +149,32 @@ export default function VideosPage() {
 
     const addVideo = async () => {
         const videoId = extractVideoId(newVideoUrl);
-        if (!videoId || !newVideoTitle.trim()) {
-            alert('Please enter a valid YouTube URL and title');
-            return;
-        }
-
         try {
+            let titleToUse = newVideoTitle.trim();
+            
+            // If title is empty, try to fetch from oEmbed
+            if (!titleToUse) {
+                try {
+                    const oembedRes = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
+                    const oembedData = await oembedRes.json();
+                    if (oembedData.title) {
+                        titleToUse = oembedData.title;
+                    } else {
+                        throw new Error('Could not fetch title');
+                    }
+                } catch (e) {
+                    // Fallback or error if manual title required
+                    alert('Could not automatically fetch video title. Please enter it manually.');
+                    return;
+                }
+            }
+
             const response = await fetch('/api/videos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     youtube_id: videoId,
-                    title: newVideoTitle,
+                    title: titleToUse,
                 }),
             });
 
@@ -306,10 +342,10 @@ export default function VideosPage() {
                                     Notes ({notes.length})
                                 </h3>
                                 <div className="space-y-3 max-h-96 overflow-y-auto">
-                                    {notes.length === 0 ? (
+                                    {((!notes || notes.length === 0) ? (
                                         <p className="text-gray-500 dark:text-gray-400 text-sm">No notes yet for this video.</p>
                                     ) : (
-                                        notes.map((note) => (
+                                        (Array.isArray(notes) ? notes : []).map((note) => (
                                             <div
                                                 key={note.id}
                                                 className={`p-3 rounded-lg ${currentTime >= note.start_time && (!note.end_time || currentTime <= note.end_time)
@@ -332,7 +368,7 @@ export default function VideosPage() {
                                                 <p className="text-gray-800 dark:text-gray-200 mt-1">{note.note_text}</p>
                                             </div>
                                         ))
-                                    )}
+                                    ))}
                                 </div>
                             </div>
                         </>

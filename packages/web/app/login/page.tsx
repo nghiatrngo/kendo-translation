@@ -9,7 +9,7 @@ function LoginForm() {
     const [password, setPassword] = useState('')
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
-    const [mode, setMode] = useState<'login' | 'signup'>('login')
+    const [mode] = useState<'login'>('login')
     const router = useRouter()
     const searchParams = useSearchParams()
 
@@ -23,7 +23,7 @@ function LoginForm() {
         setError(null)
 
         try {
-            const endpoint = mode === 'signup' ? '/api/auth/signup' : '/api/auth/login'
+            const endpoint = '/api/auth/login'
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -36,14 +36,10 @@ function LoginForm() {
                 throw new Error(data.error || 'Authentication failed')
             }
 
-            if (mode === 'signup') {
-                setError('Check your email for the confirmation link!')
-            } else {
-                // Redirect to original destination or home
-                const redirectTo = searchParams.get('redirectTo') || '/'
-                router.push(redirectTo)
-                router.refresh()
-            }
+            // Redirect to original destination or home
+            const redirectTo = searchParams.get('redirectTo') || '/'
+            router.push(redirectTo)
+            router.refresh()
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred')
         } finally {
@@ -54,7 +50,7 @@ function LoginForm() {
     return (
         <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-md">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
-                🔐 {mode === 'login' ? 'Login' : 'Sign Up'}
+                🔐 Login
             </h1>
 
             {/* Role-based access error from middleware */}
@@ -112,18 +108,12 @@ function LoginForm() {
                     disabled={loading}
                     className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition"
                 >
-                    {loading ? 'Loading...' : mode === 'login' ? 'Sign In' : 'Sign Up'}
+                    {loading ? 'Loading...' : 'Sign In'}
                 </button>
             </form>
 
             <p className="text-center text-gray-600 dark:text-gray-400 text-sm mt-6">
-                {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
-                <button
-                    onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-                    className="text-blue-600 hover:underline"
-                >
-                    {mode === 'login' ? 'Sign up' : 'Sign in'}
-                </button>
+                Don't have an account? Contact an administrator.
             </p>
         </div>
     )
