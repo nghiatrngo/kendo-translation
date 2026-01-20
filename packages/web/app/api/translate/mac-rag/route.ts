@@ -10,16 +10,16 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { buildContext, type ContextObject } from '@/lib/context/context-builder';
-import { searchTM, type TMMatch } from '@/lib/retrieval/tm-search';
-import { searchTerminology, type TerminologyConstraints } from '@/lib/retrieval/terminology';
-import { pairContext, type PairedContext } from '@/lib/context/context-pairer';
-import { generateMultipleCandidates, type TranslationCandidate } from '@/lib/translation/multi-gen';
-import { analyzeJaForTranslation, generateTranslationGuidance, type JaEnAnalysis } from '@/lib/agents/ja-en-agent';
-import { detectGaps, type CoverageReport } from '@/lib/context/gap-detector';
-import { scoreTranslation, type QualityAssessment } from '@/lib/quality/scorer';
-import { routeByQuality, type RoutingResult } from '@/lib/quality/routing';
+import { createClient } from '../../../../lib/supabase/server';
+import { buildContext, type ContextObject } from '../../../../lib/context/context-builder';
+import { searchTM, type TMMatch } from '../../../../lib/retrieval/tm-search';
+import { searchTerminology, type TerminologyConstraints } from '../../../../lib/retrieval/terminology';
+import { pairContext, type PairedContext } from '../../../../lib/context/context-pairer';
+import { generateMultipleCandidates, type TranslationCandidate } from '../../../../lib/translation/multi-gen';
+import { analyzeJaForTranslation, generateTranslationGuidance, type JaEnAnalysis } from '../../../../lib/agents/ja-en-agent';
+import { detectGaps, type CoverageReport } from '../../../../lib/context/gap-detector';
+import { scoreTranslation, type QualityAssessment } from '../../../../lib/quality/scorer';
+import { routeByQuality, type RoutingResult } from '../../../../lib/quality/routing';
 
 // === REQUEST/RESPONSE TYPES ===
 

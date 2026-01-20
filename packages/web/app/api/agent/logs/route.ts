@@ -7,8 +7,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getRecentLogs, getLogStats, clearLogs, type AgentLog } from '@/lib/llm/agent-logger';
-import { createClient } from '@/lib/supabase/server';
+import { getRecentLogs, getLogStats, clearLogs, type AgentLog } from '../../../../lib/llm/agent-logger';
+import { createClient } from '../../../../lib/supabase/server';
 
 export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;

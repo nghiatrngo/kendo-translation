@@ -3,7 +3,7 @@
  * Layer 4: Route translations based on quality thresholds
  */
 
-import type { QualityScores, QualityAssessment } from '@/lib/quality/scorer';
+import type { QualityScores, QualityAssessment } from '../../lib/quality/scorer';
 
 export type RoutingDecision =
     | 'auto_accept'    // ≥0.90: High quality, no review needed

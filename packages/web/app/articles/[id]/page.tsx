@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '../../../lib/supabase/server'
 import { notFound } from 'next/navigation'
-import { BookmarkButton } from '@/components/BookmarkButton'
-import { ArticleHistoryTracker } from '@/components/ArticleHistoryTracker'
+import { BookmarkButton } from '../../../components/BookmarkButton'
+import { ArticleHistoryTracker } from '../../../components/ArticleHistoryTracker'
 
 interface PageProps {
     params: Promise<{ id: string }>

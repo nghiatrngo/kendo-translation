@@ -5,8 +5,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import kendoTerms from '@/lib/data/kendo_terms.json';
+import { createClient } from '../../../../lib/supabase/server';
+import kendoTerms from '../../../../lib/data/kendo_terms.json';
 
 interface TermEntry {
     source_term: string;

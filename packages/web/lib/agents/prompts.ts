@@ -4,7 +4,7 @@
  * Manages fetching and resolving prompt templates from Database or Fallback defaults.
  */
 
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '../../lib/supabase/server';
 
 export interface PromptTemplate {
     id?: string;

@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import type { ContextObject, Entity, DomainClassification, StyleProfile } from '@/lib/context/context-builder';
+import type { ContextObject, Entity, DomainClassification, StyleProfile } from '../../lib/context/context-builder';
 
 // === TYPE DEFINITIONS ===
 

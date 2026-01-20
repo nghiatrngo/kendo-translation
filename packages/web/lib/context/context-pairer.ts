@@ -3,9 +3,9 @@
  * Layer 3: Synthesize retrieved context into weighted, unified prompt context
  */
 
-import type { ContextObject } from '@/lib/context/context-builder';
-import type { TMMatch } from '@/lib/retrieval/tm-search';
-import type { TerminologyConstraints, TermEntry } from '@/lib/retrieval/terminology';
+import type { ContextObject } from '../../lib/context/context-builder';
+import type { TMMatch } from '../../lib/retrieval/tm-search';
+import type { TerminologyConstraints, TermEntry } from '../../lib/retrieval/terminology';
 
 export interface ContextWeight {
     source: 'tm' | 'terminology' | 'corpus' | 'user';

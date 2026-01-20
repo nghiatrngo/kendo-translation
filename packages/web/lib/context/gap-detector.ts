@@ -3,9 +3,9 @@
  * Layer 4: Identify gaps in translation context coverage
  */
 
-import type { ContextObject, Entity } from '@/lib/context/context-builder';
-import type { TMMatch } from '@/lib/retrieval/tm-search';
-import type { TerminologyConstraints, TermEntry } from '@/lib/retrieval/terminology';
+import type { ContextObject, Entity } from '../../lib/context/context-builder';
+import type { TMMatch } from '../../lib/retrieval/tm-search';
+import type { TerminologyConstraints, TermEntry } from '../../lib/retrieval/terminology';
 
 export interface CoverageGap {
     type: 'terminology' | 'tm' | 'entity' | 'domain' | 'style';

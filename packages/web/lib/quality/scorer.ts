@@ -3,7 +3,7 @@
  * Phase 4: LLM-assisted quality assessment for translations
  */
 
-import { agentChat } from '@/lib/llm/provider';
+import { agentChat } from '../../lib/llm/provider';
 
 export interface QualityScores {
     overall: number;

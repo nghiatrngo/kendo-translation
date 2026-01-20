@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { BookmarkButton } from '@/components/BookmarkButton';
+import { BookmarkButton } from '../../../components/BookmarkButton';
 
 interface VideoNote {
     id: string;

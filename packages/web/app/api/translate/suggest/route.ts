@@ -8,8 +8,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { agentChat } from '@/lib/llm/provider';
-import { analyzeJAEN, type JAENAnalysis } from '@/lib/agents/ja-en-specialist';
+import { agentChat } from '../../../../lib/llm/provider';
+import { analyzeJAEN, type JAENAnalysis } from '../../../../lib/agents/ja-en-specialist';
 import { createClient } from '@supabase/supabase-js';
 
 interface TranslationRequest {

@@ -4,8 +4,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import type { ContextObject } from '@/lib/context/context-builder';
+import { createClient } from '../../../../lib/supabase/server';
+import type { ContextObject } from '../../../../lib/context/context-builder';
 
 export interface TMMatch {
     id: string;

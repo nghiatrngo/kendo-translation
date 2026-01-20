@@ -9,8 +9,8 @@
  * 4. Character Voice - Preserve personality markers
  */
 
-import { agentChat, type Message } from '@/lib/llm/provider';
-import onomatopoeiaData from '@/lib/data/onomatopoeia.json';
+import { agentChat, type Message } from '../../lib/llm/provider';
+import onomatopoeiaData from '../../lib/data/onomatopoeia.json';
 
 // Types
 export interface SubjectResolution {

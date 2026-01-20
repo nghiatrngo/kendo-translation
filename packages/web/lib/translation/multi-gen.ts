@@ -3,10 +3,10 @@
  * Layer 3: Generate multiple translation candidates with different approaches
  */
 
-import { agentChat } from '@/lib/llm/provider';
-import type { ContextObject } from '@/lib/context/context-builder';
-import type { TerminologyConstraints } from '@/lib/retrieval/terminology';
-import type { TMMatch } from '@/lib/retrieval/tm-search';
+import { agentChat } from '../../lib/llm/provider';
+import type { ContextObject } from '../../lib/context/context-builder';
+import type { TerminologyConstraints } from '../../lib/retrieval/terminology';
+import type { TMMatch } from '../../lib/retrieval/tm-search';
 
 export interface TranslationCandidate {
     id: string;

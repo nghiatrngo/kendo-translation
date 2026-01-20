@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '../../../lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
-import TranslationEditor from '@/components/TranslationEditor'
+import TranslationEditor from '../../../components/TranslationEditor'
 
 interface PageProps {
     params: Promise<{ id: string }>
