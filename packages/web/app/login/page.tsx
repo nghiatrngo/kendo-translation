@@ -99,7 +99,7 @@ function LoginForm() {
                         required
                         placeholder="your@email.com"
                         suppressHydrationWarning
-                        autoComplete="email"
+                        autoComplete="off"
                         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>
@@ -115,7 +115,7 @@ function LoginForm() {
                         placeholder="••••••••"
                         minLength={6}
                         suppressHydrationWarning
-                        autoComplete="current-password"
+                        autoComplete="off"
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                 </div>

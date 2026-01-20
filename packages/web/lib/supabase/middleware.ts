@@ -48,6 +48,13 @@ export async function updateSession(request: NextRequest) {
         url.searchParams.set('redirectTo', pathname)
         return NextResponse.redirect(url)
     }
+    
+    // Redirect authenticated users from /dashboard or / to /profile (Disable Dashboard)
+    if (user && (pathname === '/dashboard' || pathname === '/')) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/profile'
+        return NextResponse.redirect(url)
+    }
 
     // Role-based access control
     if (user) {
