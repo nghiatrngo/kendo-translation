@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Import context builder
-        const { buildContext } = await import('@/lib/context/context-builder');
+        const { buildContext } = await import('../../../../lib/context/context-builder');
 
         // Build context
         const context = await buildContext({

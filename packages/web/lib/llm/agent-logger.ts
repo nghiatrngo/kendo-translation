@@ -52,7 +52,7 @@ export async function logAgentCall(log: Omit<AgentLog, 'id' | 'timestamp'>): Pro
 
     // 2. Persist to Database (Await to ensure it saves in serverless env)
     try {
-        const { createClient } = await import('@/lib/supabase/server');
+        const { createClient } = await import('../../lib/supabase/server');
         const supabase = await createClient();
 
         // We need auth context to save to DB (RLS)

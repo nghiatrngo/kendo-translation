@@ -110,7 +110,7 @@ export async function scoreTranslation(options: ScoringOptions): Promise<Quality
     }
 
     // Get prompt template
-    const { getPromptTemplate } = await import('@/lib/agents/prompts');
+    const { getPromptTemplate } = await import('../../lib/agents/prompts');
     const template = await getPromptTemplate('reflection', 'quality');
 
     // Build prompt

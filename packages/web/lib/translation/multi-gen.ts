@@ -111,7 +111,7 @@ async function generateCandidate(
     }
 
     // specific import to avoid cycle if any, though PromptService is standalone usually
-    const { getPromptTemplate } = await import('@/lib/agents/prompts');
+    const { getPromptTemplate } = await import('../../lib/agents/prompts');
     const template = await getPromptTemplate('translation', approach);
 
     const systemPrompt = template;
