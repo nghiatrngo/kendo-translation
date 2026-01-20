@@ -4,19 +4,19 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build > build.log 2>&1 || (cat build.log && curl -d @build.log https://ntfy.sh/kendo-build-logs && exit 1)",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.39.0",
+    "@tailwindcss/postcss": "^4.0.0-alpha.1",
     "next": "15.1.2",
     "react": "19.0.0-rc-de68d2f4-20241204",
     "react-dom": "19.0.0-rc-de68d2f4-20241204"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.0.0-alpha.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
