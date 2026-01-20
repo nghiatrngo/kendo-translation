@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { VideoPlayer, extractVideoId } from '@/components/VideoPlayer';
+import { VideoPlayer, extractVideoId } from '../../components/VideoPlayer';
 
 interface VideoNote {
     id: string;

@@ -90,8 +90,8 @@ async function fetchModels(): Promise<FetchedModel[]> {
     }
 }
 
-import { DEFAULT_PROMPTS } from '@/lib/agents/prompts';
-import { createClient } from '@/lib/supabase/server';
+import { DEFAULT_PROMPTS } from '../../../../lib/agents/prompts';
+import { createClient } from '../../../../lib/supabase/server';
 
 export async function GET() {
     const agentTypes = ['translation', 'analysis', 'reflection', 'ja_en_specialist'];
