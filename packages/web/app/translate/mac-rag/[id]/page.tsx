@@ -11,9 +11,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import useMacRag from '@/lib/hooks/useMacRag';
-import ContextBuilderPanel from '@/components/translation/ContextBuilderPanel';
-import TranslationOutput from '@/components/translation/TranslationOutput';
-import PostTranslationPanel from '@/components/translation/PostTranslationPanel';
+import ContextBuilderPanel from '../../../../components/translation/ContextBuilderPanel';
+import TranslationOutput from '../../../../components/translation/TranslationOutput';
+import PostTranslationPanel from '../../../../components/translation/PostTranslationPanel';
 import AgentConfigPanel from '@/components/AgentConfigPanel';
 import AgentConversationLog from '@/components/AgentConversationLog';
 
